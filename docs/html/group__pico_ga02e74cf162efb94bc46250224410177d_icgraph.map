@@ -1,0 +1,4 @@
+<map id="OS_ReleaseHook" name="OS_ReleaseHook">
+<area shape="rect" id="node2" href="$group__pico.html#ga0ad9a9ec909a2414da7c35e1e0bf2043" title="OS_ReleaseTimerHook" alt="" coords="181,5,339,32"/>
+<area shape="rect" id="node3" href="$group__pico.html#ga261fe11801f5910ba99dc7ed080c796d" title="OS_ReleaseSchedHook" alt="" coords="179,56,341,83"/>
+</map>

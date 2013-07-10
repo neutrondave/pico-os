@@ -1,0 +1,9 @@
+<map id="include/picosem.h" name="include/picosem.h">
+<area shape="rect" id="node2" href="$picomsg_8h.html" title="include/picomsg.h" alt="" coords="85,80,211,107"/>
+<area shape="rect" id="node5" href="$picoque_8h.html" title="include/picoque.h" alt="" coords="287,80,409,107"/>
+<area shape="rect" id="node3" href="$pico_8c.html" title="source/pico.c" alt="" coords="5,163,104,189"/>
+<area shape="rect" id="node4" href="$picomsg_8c.html" title="source/picomsg.c" alt="" coords="133,163,259,189"/>
+<area shape="rect" id="node8" href="$picosem_8c.html" title="source/picosem.c" alt="" coords="433,80,559,107"/>
+<area shape="rect" id="node6" href="$picoque_8c.html" title="source/picoque.c" alt="" coords="285,163,405,189"/>
+<area shape="rect" id="node7" href="$serial_8c.html" title="source/portable/PIC24e\l/serial.c" alt="" coords="431,155,588,197"/>
+</map>

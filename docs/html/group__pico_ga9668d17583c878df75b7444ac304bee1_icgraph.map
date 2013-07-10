@@ -1,0 +1,5 @@
+<map id="OS_ResumeTask" name="OS_ResumeTask">
+<area shape="rect" id="node2" href="$group__pico.html#gad4d2b30c586a63b0f5c416633d0071c3" title="ServiceOSTimers" alt="" coords="179,5,301,32"/>
+<area shape="rect" id="node4" href="$group__pico__sem.html#ga3ea8923254fb57ec1281a8a8adfc0ec2" title="OS_SemSignal" alt="" coords="185,56,295,83"/>
+<area shape="rect" id="node3" href="$group__pico.html#gade68ae83a073e5760f0265918fd6460e" title="OS_StartSched" alt="" coords="350,5,463,32"/>
+</map>
