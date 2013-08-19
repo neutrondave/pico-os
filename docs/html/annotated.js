@@ -7,11 +7,13 @@ var annotated =
     [ "OS_msg", "struct_o_s__msg.html", "struct_o_s__msg" ],
     [ "OS_Queue", "struct_o_s___queue.html", "struct_o_s___queue" ],
     [ "OS_sem", "struct_o_s__sem.html", "struct_o_s__sem" ],
+    [ "pt", "structpt.html", "structpt" ],
+    [ "pt_sem", "structpt__sem.html", "structpt__sem" ],
     [ "Q_BYTE", "union_q___b_y_t_e.html", "union_q___b_y_t_e" ],
     [ "SerPortInfo", "struct_ser_port_info.html", "struct_ser_port_info" ],
     [ "slink", "structslink.html", "structslink" ],
-    [ "SUNTIMES", "struct_s_u_n_t_i_m_e_s.html", "struct_s_u_n_t_i_m_e_s" ],
     [ "TCB_Entry", "struct_t_c_b___entry.html", "struct_t_c_b___entry" ],
     [ "Thook_Entry", "struct_thook___entry.html", "struct_thook___entry" ],
+    [ "tTime", "structt_time.html", "structt_time" ],
     [ "VERSION", "struct_v_e_r_s_i_o_n.html", "struct_v_e_r_s_i_o_n" ]
 ];

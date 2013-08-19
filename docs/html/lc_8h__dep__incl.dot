@@ -1,0 +1,48 @@
+digraph "include/lc.h"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  Node1 [label="include/lc.h",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled" fontcolor="black"];
+  Node1 -> Node2 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node2 [label="include/pt.h",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$pt_8h.html"];
+  Node2 -> Node3 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node3 [label="include/pico.h",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$pico_8h_source.html"];
+  Node3 -> Node4 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node4 [label="include/picomsg.h",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$picomsg_8h_source.html"];
+  Node4 -> Node5 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node5 [label="source/pico.c",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$pico_8c.html"];
+  Node4 -> Node6 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node6 [label="source/picomsg.c",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$picomsg_8c_source.html"];
+  Node3 -> Node7 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node7 [label="include/picosem.h",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$picosem_8h_source.html"];
+  Node7 -> Node4 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node7 -> Node8 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node8 [label="include/picoque.h",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$picoque_8h_source.html"];
+  Node8 -> Node9 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node9 [label="source/picoque.c",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$picoque_8c_source.html"];
+  Node8 -> Node10 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node10 [label="source/portable/PIC24e\l/serial.c",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$serial_8c_source.html"];
+  Node7 -> Node5 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node7 -> Node6 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node7 -> Node11 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node11 [label="source/picosem.c",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$picosem_8c.html"];
+  Node3 -> Node8 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node3 -> Node12 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node12 [label="include/serial.h",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$serial_8h_source.html"];
+  Node12 -> Node10 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node3 -> Node5 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node3 -> Node6 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node3 -> Node9 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node3 -> Node11 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node3 -> Node13 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node13 [label="source/portable/CortexM3\l/portable.c",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$_cortex_m3_2portable_8c_source.html"];
+  Node3 -> Node14 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node14 [label="source/portable/dsPIC\l/portable.c",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$ds_p_i_c_2portable_8c_source.html"];
+  Node3 -> Node15 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node15 [label="source/portable/PIC24e\l/portable.c",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$_p_i_c24e_2portable_8c_source.html"];
+  Node3 -> Node10 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node3 -> Node16 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node16 [label="source/portable/PIC32MX\l/portable.c",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$_p_i_c32_m_x_2portable_8c_source.html"];
+  Node2 -> Node17 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node17 [label="include/pt-sem.h",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$pt-sem_8h.html"];
+}

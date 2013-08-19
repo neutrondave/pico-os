@@ -187,7 +187,7 @@ SerialInit(SerPortInfo *portInfo)
                 IPC3bits.U1TXIP    = portInfo->TxPrio;
                 U1BRG              = BaudDivide;
                 U1MODE             = 0;
-                U1MODEbits.UEN     = portInfo->DataCtrl;
+                U1MODEbits.UEN     = (portInfo->DataCtrl & DC_MASK);
                 U1MODEbits.PDSEL   = portInfo->parity;
                 U1MODEbits.STSEL   = portInfo->stop;
                 U1MODEbits.WAKE    = portInfo->wake;
@@ -208,7 +208,7 @@ SerialInit(SerPortInfo *portInfo)
                 IPC7bits.U2TXIP    = portInfo->TxPrio;
                 U2BRG              = BaudDivide;
                 U2MODE             = 0;
-                U2MODEbits.UEN     = portInfo->DataCtrl;
+                U2MODEbits.UEN     = (portInfo->DataCtrl & DC_MASK);
                 U2MODEbits.PDSEL   = portInfo->parity;
                 U2MODEbits.STSEL   = portInfo->stop;
                 U2MODEbits.WAKE    = portInfo->wake;
@@ -229,7 +229,7 @@ SerialInit(SerPortInfo *portInfo)
                 IPC20bits.U3TXIP   = portInfo->TxPrio;
                 U3BRG              = BaudDivide;
                 U3MODE             = 0;
-                U3MODEbits.UEN     = portInfo->DataCtrl;
+                U3MODEbits.UEN     = (portInfo->DataCtrl & DC_MASK);
                 U3MODEbits.PDSEL   = portInfo->parity;
                 U3MODEbits.STSEL   = portInfo->stop;
                 U3MODEbits.WAKE    = portInfo->wake;
@@ -250,7 +250,7 @@ SerialInit(SerPortInfo *portInfo)
                 IPC22bits.U4TXIP   = portInfo->TxPrio;
                 U4BRG              = BaudDivide;
                 U4MODE             = 0;
-                U4MODEbits.UEN     = portInfo->DataCtrl;
+                U4MODEbits.UEN     = (portInfo->DataCtrl & DC_MASK);
                 U4MODEbits.PDSEL   = portInfo->parity;
                 U4MODEbits.STSEL   = portInfo->stop;
                 U4MODEbits.WAKE    = portInfo->wake;

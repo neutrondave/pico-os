@@ -1,9 +1,10 @@
 <map id="KQ_ndelete" name="KQ_ndelete">
 <area shape="rect" id="node2" href="$group__pico.html#ga9668d17583c878df75b7444ac304bee1" title="OS_ResumeTask" alt="" coords="146,5,270,32"/>
-<area shape="rect" id="node6" href="$group__pico.html#gaa77d0b919f36685f6670f797e35d7b19" title="OS_KillTask" alt="" coords="161,56,255,83"/>
-<area shape="rect" id="node7" href="$group__pico.html#ga918ef55a4d88b1bb0c016157e2dc23ac" title="OS_SuspendTask" alt="" coords="145,107,271,133"/>
-<area shape="rect" id="node8" href="$group__pico.html#gaa069ae08859bcf7148b2dcb0f4837a18" title="OS_Delay" alt="" coords="167,157,249,184"/>
+<area shape="rect" id="node7" href="$group__pico.html#gaa77d0b919f36685f6670f797e35d7b19" title="OS_KillTask" alt="" coords="161,56,255,83"/>
+<area shape="rect" id="node8" href="$group__pico.html#ga918ef55a4d88b1bb0c016157e2dc23ac" title="OS_SuspendTask" alt="" coords="145,107,271,133"/>
+<area shape="rect" id="node9" href="$group__pico.html#gaa069ae08859bcf7148b2dcb0f4837a18" title="OS_Delay" alt="" coords="167,157,249,184"/>
 <area shape="rect" id="node3" href="$group__pico.html#gad4d2b30c586a63b0f5c416633d0071c3" title="ServiceOSTimers" alt="" coords="320,132,443,159"/>
 <area shape="rect" id="node5" href="$group__pico__sem.html#ga3ea8923254fb57ec1281a8a8adfc0ec2" title="OS_SemSignal" alt="" coords="326,5,437,32"/>
 <area shape="rect" id="node4" href="$group__pico.html#gade68ae83a073e5760f0265918fd6460e" title="OS_StartSched" alt="" coords="491,132,605,159"/>
+<area shape="rect" id="node6" href="$picomsg_8c.html#aad9c79081e400afa726efd798811d51c" title="OS_MsgSend" alt="" coords="497,5,599,32"/>
 </map>

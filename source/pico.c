@@ -278,7 +278,7 @@ OS_Init( void )
  * Allocate an empty task control block, and initialize it for use.
  *
  * \param prio		task priority
- * \param tid  		task 'id'
+ * \param env 		task 'environment' variable
  * \param pr_addr	task function pointer
  *
  * \return 	 		pointer to the TCB; NULL if none available
@@ -292,7 +292,7 @@ OS_Init( void )
  #include pico.h
 
  #define myPrioLevel	8
- #define myTaskID		6
+ #define myTaskEnv		6
 
  int myTask(TCB_PT *);
 
@@ -300,7 +300,7 @@ OS_Init( void )
  anyfunc(void)
  {
 	TCB_Entry t_handle;
-	t_handle = OS_CreateTask(myPrioLevel, myTaskID, myTask);
+	t_handle = OS_CreateTask(myPrioLevel, myTaskEnv, myTask);
 	if ((TCB_PT *)NULL != t_handle){
 		task created successfully...
 	}
@@ -312,14 +312,14 @@ OS_Init( void )
  *
  */
 TCB_Entry *
-OS_CreateTask( BYTE prio, BYTE tid, int (*pr_addr)(TCB_PT *))
+OS_CreateTask( BYTE prio, BYTE env, int (*pr_addr)(TCB_PT *))
 {
     TCB_Entry *handle;
     handle = OS_GetTCB();
     if ((TCB_Entry *)Q_NULL != handle)
     {
         handle->Flags    = (prio & PRIOMASK);
-        handle->TaskID   =  tid;
+        handle->TaskEnv  =  env;
         handle->pThread  =  pr_addr;
         PT_INIT(&handle->TCBpt);
     }
@@ -347,7 +347,7 @@ OS_CreateTask( BYTE prio, BYTE tid, int (*pr_addr)(TCB_PT *))
  #include pico.h
 
  #define myPrioLevel	8
- #define myTaskID		6
+ #define myTaskEnv		6
 
  int myTask(TCB_PT *);
  TCB_Entry *someTaskHandle;
@@ -359,9 +359,9 @@ OS_CreateTask( BYTE prio, BYTE tid, int (*pr_addr)(TCB_PT *))
 
 	OS_ResumeTask(someTaskHandle);	// resume some task
 
-	t_handle = OS_CreateTask(myPrioLevel, myTaskID, myTask); // create a new task
+	t_handle = OS_CreateTask(myPrioLevel, myTaskEnv, myTask); // create a new task
 	if ((TCB_Entry *)NULL != t_handle){
-		OS_ResumeTask(t_handle);							// we were successful. resume it
+		OS_ResumeTask(t_handle);							  // we were successful. resume it
 	}
 	else {
 		otherwise handle the error as required here...
@@ -477,32 +477,6 @@ OS_SuspendTask( K_LIST *queue, K_LIST *node )
  *
  *********************************************************************
  *
- * Search through the task control block structure for a TCB that
- *	matches the given task ID. similar to a 'WhoIs' function.
- *
- * \param	tid    	the task id to search for
- *
- * \return 	TCB_Entry *; NULL if not found
- */
-TCB_Entry *
-OS_FindTask( BYTE tid )
-{
-    BYTE index = 0;
-    do
-    {
-        if ((tid == TCB[index].TaskID) && (TCB_FREE != (TCB[index].Flags & TCB_FREE)))
-        {
-            return( &TCB[index]);
-        }
-    }
-    while ( ++index < N_TASKS );
-    return((TCB_Entry *)Q_NULL );
-}
-
-/**
- *
- *********************************************************************
- *
  * Search through the task control block structure for the first
  *	non-used TCB. In pico, a number of TCBs are statically allocated,
  *	to create a task, we need to find a free control block.
@@ -547,7 +521,7 @@ OS_ReleaseTCB( TCB_Entry *tcbp )
     tcbp->Timer        =  0;
     tcbp->gpTimer      =  0;
     tcbp->Flags        = (TCB_FREE | PRIOMASK);
-    tcbp->TaskID       =  0xFF;
+    tcbp->TaskEnv      =  0;
 }
 
 /**

@@ -1,4 +1,6 @@
 <map id="OS_HookHandler" name="OS_HookHandler">
 <area shape="rect" id="node2" href="$group__pico.html#gade68ae83a073e5760f0265918fd6460e" title="OS_StartSched" alt="" coords="177,5,290,32"/>
 <area shape="rect" id="node3" href="$group__pico.html#gaf95675236a9d460113661bed8cd70320" title="OS_TimerHook" alt="" coords="178,56,289,83"/>
+<area shape="rect" id="node4" href="$ds_p_i_c_2portable_8c.html#a226557d5e42f7e29ddaff30606138459" title="__attribute__" alt="" coords="339,31,437,57"/>
+<area shape="rect" id="node5" href="$_p_i_c32_m_x_2portable_8c.html#a42e281db6c4ed8e074cb48fb3af6af6f" title="__ISR" alt="" coords="359,81,417,108"/>
 </map>

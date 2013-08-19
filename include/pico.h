@@ -144,7 +144,7 @@
 	    TIMER_T  Timer;
 	    TIMER_T  gpTimer;
 	    BYTE     Flags;
-	    BYTE     TaskID;
+	    BYTE     TaskEnv;
 	    TCB_PT   TCBpt;
 	    int      ( *pThread )( TCB_PT * );
 	} TCB_Entry;
@@ -212,7 +212,6 @@
 	_SCOPE_ void 		OS_ResumeTask( TCB_Entry * );
 	_SCOPE_ void 	    OS_SuspendTask( K_LIST *, K_LIST * );
 	_SCOPE_ void 		OS_KillTask( TCB_Entry * );
-	_SCOPE_ TCB_Entry  *OS_FindTask( BYTE );
 	_SCOPE_ TCB_Entry  *OS_GetTCB( void );
 	_SCOPE_ void 	    OS_ReleaseTCB( TCB_Entry * );
 	#define		OS_Suspend( q )	OS_SuspendTask( q, (K_LIST *)ME )
@@ -237,6 +236,7 @@
 	#define		TaskTimerExpired(t)	    (0 != (t->Flags & TCB_TIMEOUT))
 	#define		setgpTimer( t, d )	    t->gpTimer = d
 	#define		gpTimerExpired(t)	    (0 ==  t->gpTimer)
+	#define		getTaskEnv( t )			t->TaskEnv
 	/*
 	 * low-level functions
 	 */

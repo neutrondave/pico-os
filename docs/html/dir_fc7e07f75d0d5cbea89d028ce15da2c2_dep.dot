@@ -1,0 +1,9 @@
+digraph "source/portable/PIC32MX" {
+  compound=true
+  node [ fontsize="10", fontname="Helvetica"];
+  edge [ labelfontsize="10", labelfontname="Helvetica"];
+  subgraph clusterdir_23b96b3e5577a08e1f558946e590671e {
+    graph [ bgcolor="#ddddee", pencolor="black", label="portable" fontname="Helvetica", fontsize="10", URL="dir_23b96b3e5577a08e1f558946e590671e.html"]
+  dir_fc7e07f75d0d5cbea89d028ce15da2c2 [shape=box, label="PIC32MX", style="filled", fillcolor="#eeeeff", pencolor="black", URL="dir_fc7e07f75d0d5cbea89d028ce15da2c2.html"];
+  }
+}

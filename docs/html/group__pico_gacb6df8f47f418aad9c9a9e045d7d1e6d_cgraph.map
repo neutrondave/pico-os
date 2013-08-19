@@ -1,3 +1,4 @@
 <map id="OS_Init" name="OS_Init">
-<area shape="rect" id="node2" href="$group__pico.html#gaea4e6ff6a685f3dd4a997463b4b37dee" title="OS_ReleaseTCB" alt="" coords="120,5,240,32"/>
+<area shape="rect" id="node2" href="$group__pico.html#ga257c9a8c2ada7a8aac2f02240670f938" title="SetupTickInterrupt" alt="" coords="121,5,247,32"/>
+<area shape="rect" id="node3" href="$group__pico.html#gaea4e6ff6a685f3dd4a997463b4b37dee" title="OS_ReleaseTCB" alt="" coords="124,56,244,83"/>
 </map>

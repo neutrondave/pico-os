@@ -95,6 +95,8 @@
 	#define	DC_TXRX_ONLY	0
 	#define	DC_TXRX_RTS		1
 	#define	DC_TXRX_RTSCTS	2
+	#define	DC_MASK		    3
+	#define	DC_RS485		4
 
 	#define	DATA8_NP		0
 	#define	DATA8_EP		1

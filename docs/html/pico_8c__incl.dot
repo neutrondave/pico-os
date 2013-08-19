@@ -1,0 +1,29 @@
+digraph "source/pico.c"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  Node1 [label="source/pico.c",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled" fontcolor="black"];
+  Node1 -> Node2 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node2 [label="pico.h",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$pico_8h_source.html"];
+  Node2 -> Node3 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node3 [label="dtypes.h",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$dtypes_8h_source.html"];
+  Node3 -> Node4 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node4 [label="compiler.h",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$_compiler_8h_source.html"];
+  Node2 -> Node5 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node5 [label="k_cfg.h",height=0.2,width=0.4,color="grey75", fillcolor="white", style="filled"];
+  Node2 -> Node6 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node6 [label="portable.h",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$portable_8h_source.html"];
+  Node2 -> Node7 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node7 [label="pt.h",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$pt_8h.html"];
+  Node7 -> Node8 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node8 [label="lc.h",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$lc_8h.html"];
+  Node8 -> Node9 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node9 [label="lc-switch.h",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$lc-switch_8h.html"];
+  Node1 -> Node10 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node10 [label="picosem.h",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$picosem_8h_source.html"];
+  Node10 -> Node2 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node1 -> Node11 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node11 [label="picomsg.h",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$picomsg_8h_source.html"];
+  Node11 -> Node2 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node11 -> Node10 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+}

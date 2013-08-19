@@ -1,0 +1,9 @@
+digraph "source/portable/PIC24e" {
+  compound=true
+  node [ fontsize="10", fontname="Helvetica"];
+  edge [ labelfontsize="10", labelfontname="Helvetica"];
+  subgraph clusterdir_23b96b3e5577a08e1f558946e590671e {
+    graph [ bgcolor="#ddddee", pencolor="black", label="portable" fontname="Helvetica", fontsize="10", URL="dir_23b96b3e5577a08e1f558946e590671e.html"]
+  dir_538a5db659a3c6a8199d022fa72fe7e8 [shape=box, label="PIC24e", style="filled", fillcolor="#eeeeff", pencolor="black", URL="dir_538a5db659a3c6a8199d022fa72fe7e8.html"];
+  }
+}
