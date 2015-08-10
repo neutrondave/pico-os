@@ -66,15 +66,15 @@
 /*
  * TCB related stuff
  */
-#define N_TASKS         	                           8
+#define N_TASKS         	8
 
-#define	CPU_CLOCK_HZ		            ((Uint32_t)50000000)
-#define	TICK_RATE_HZ		            ((Uint32_t)     100)
-#define uint8_t_ALIGNMENT  	 	                       4
-#define	T_STK_SZE_MIN			                (128 * 4)
+#define	CPU_CLOCK_HZ		((uint32_t)50000000)
+#define	TICK_RATE_HZ		((uint32_t) 100)
+#define BYTE_ALIGNMENT  	4
+#define	T_STK_SZE_MIN		(128 * 4)
 
-#define	T_ONE_SEC			        ((Uint32_t)TICK_RATE_HZ)
-#define	T_ONE_MS			((Uint32_t)(1000 / TICK_RATE_HZ))
+#define	T_ONE_SEC			((uint32_t)TICK_RATE_HZ)
+#define	T_ONE_MS			((uint32_t)(1000 / TICK_RATE_HZ))
 
 #include	"board_cfg.h"
 
