@@ -115,12 +115,12 @@
  *   Prototypes
  */
 
-PUBLIC	void 	OSTickInt( void );
-PUBLIC	void 	OS_DelayUs( DWORD );
-PUBLIC	void 	OS_DelayMs( WORD );
-PUBLIC  void 	OSTickInt( void );
-PUBLIC  void   _general_exception_handler(unsigned int, unsigned int);
-PUBLIC	void 	SetupTickInterrupt( void );
+void 	OSTickInt( void );
+void 	OS_DelayUs( uint32_t );
+void 	OS_DelayMs( uint16_t );
+void 	OSTickInt( void );
+void   _general_exception_handler(unsigned int, unsigned int);
+void 	SetupTickInterrupt( void );
 
 /*
  ********************************************************************
@@ -134,12 +134,12 @@ PUBLIC	void 	SetupTickInterrupt( void );
  *   Module Data
  */
 
-LOCAL		WORD		OneSecPrescaler;
-EXTERN  	TCB_Entry  *CurTask;
-EXTERN  	K_LIST      k_ready_list, k_wait_list;
-EXTERN  	TCB_Entry   TCB[N_TASKS];
-EXTERN  	TIMER_T		CurrentTick;
-EXTERN		TIMER_T		LastTick;
+static uint16_t		OneSecPrescaler;
+extern tcb_entry_t  *CurTask;
+extern k_list_t     k_ready_list, k_wait_list;
+extern tcb_entry_t  TCB[N_TASKS];
+extern timer_t		CurrentTick;
+extern timer_t		LastTick;
 
 /*
  * Let compile time pre-processor calculate the Timer 1 tick period
@@ -201,9 +201,9 @@ SetupTickInterrupt( void )
  *******************************************************************/
 
 void
-OS_DelayUs( DWORD MicroSecondCounter )
+OS_DelayUs( uint32_t MicroSecondCounter )
 {
-    volatile DWORD cyclesRequiredForEntireDelay;
+    volatile uint32_t cyclesRequiredForEntireDelay;
     if(GetInstructionClock() <= 500000)				 //for all FCY speeds under 500KHz (FOSC <= 1MHz)
     {
         //10 cycles burned through this path (includes return to caller).
@@ -247,7 +247,7 @@ OS_DelayUs( DWORD MicroSecondCounter )
  *
  *******************************************************************/
 void
-OS_DelayMs( WORD ms )
+OS_DelayMs( uint16_t ms )
 {
     while (ms--)
     {
@@ -299,8 +299,8 @@ __ISR(_TIMER_2_VECTOR, IPL(TICK_IPL)) OSTickInt( void )
 void
 _general_exception_handler( unsigned int cause, unsigned int status )
 {
-    DWORD excep_code;
-    DWORD excep_addr;
+    uint32_t excep_code;
+    uint32_t excep_addr;
     excep_code = (cause & 0x0000007C) >> 2;
     excep_addr = __builtin_mfc0(_CP0_EPC, _CP0_EPC_SELECT);
     if ((cause & 0x80000000) != 0)

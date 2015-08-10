@@ -112,14 +112,14 @@
  *   Prototypes
  */
 
-PUBLIC	void 	OS_DelayUs( DWORD );
-PUBLIC	void 	OS_DelayMs( WORD );
-PUBLIC  void   _T1Interrupt( void );
-PUBLIC  void   _OscillatorFail(void);
-PUBLIC  void   _AddressError(void);
-PUBLIC  void   _StackError(void);
-PUBLIC  void   _MathError(void);
-PUBLIC	void 	SetupTickInterrupt( void );
+void 	OS_DelayUs( uint32_t );
+void 	OS_DelayMs( uint16_t );
+void   _T1Interrupt( void );
+void   _OscillatorFail(void);
+void   _AddressError(void);
+void   _StackError(void);
+void   _MathError(void);
+void 	SetupTickInterrupt( void );
 
 /*
  ********************************************************************
@@ -133,12 +133,12 @@ PUBLIC	void 	SetupTickInterrupt( void );
  *   Module Data
  */
 
-LOCAL		WORD		OneSecPrescaler;
-EXTERN  	TCB_Entry  *CurTask;
-EXTERN  	K_LIST      k_ready_list, k_wait_list;
-EXTERN  	TCB_Entry   TCB[N_TASKS];
-EXTERN  	TIMER_T		CurrentTick;
-EXTERN		TIMER_T		LastTick;
+static uint16_t		OneSecPrescaler;
+extern tcb_entry_t  *CurTask;
+extern k_list_t     k_ready_list, k_wait_list;
+extern tcb_entry_t  TCB[N_TASKS];
+extern timer_t		CurrentTick;
+extern timer_t		LastTick;
 
 #define SYS_FREQ 		CPU_CLOCK_HZ
 #define T1_PRESCALE		8
@@ -195,9 +195,9 @@ SetupTickInterrupt( void )
  *******************************************************************/
 
 void
-OS_DelayUs( DWORD MicroSecondCounter )
+OS_DelayUs( uint32_t MicroSecondCounter )
 {
-    DWORD i;
+    uint32_t i;
     for (i = 0; i < MicroSecondCounter; i++)
     {
         __asm__ volatile ("repeat #25");
@@ -218,7 +218,7 @@ OS_DelayUs( DWORD MicroSecondCounter )
  *
  *******************************************************************/
 void
-OS_DelayMs( WORD ms )
+OS_DelayMs( uint16_t ms )
 {
     while (ms--)
     {

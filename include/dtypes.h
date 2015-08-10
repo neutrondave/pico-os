@@ -71,10 +71,10 @@
 	/*
 	 * data scope
 	 */
-	#define	PUBLIC
-	#define	PRIVATE   static
-	#define	LOCAL     static
-	#define	EXTERN    extern
+	#define	
+	#define	PRIVATE static
+	#define	static  static
+	#define	extern  extern
 
 	/*
 	 * check if we're using pico
@@ -92,10 +92,9 @@
 		 * These types are assumed as 8-bit integer
 		 */
 		typedef signed   char 	CHAR;
-		typedef signed 	 char  	S_BYTE;
+		typedef signed 	 char  	S_CHAR;
 		typedef signed   char 	INT8S;
 		typedef unsigned char	UCHAR;
-		typedef unsigned char	BYTE;
 		typedef unsigned char	INT8U;
 
 		/*
@@ -104,7 +103,6 @@
 		typedef signed   short	SHORT;
 		typedef signed   short 	S_WORD;
 		typedef signed   short 	INT16S;
-		typedef unsigned short	WORD;
 		typedef unsigned short	INT16U;
 
 		/*
@@ -113,7 +111,6 @@
 		typedef signed   long	LONG;
 		typedef signed 	 long	S_LONG;
 		typedef signed 	 long	INT32S;
-		typedef unsigned long	DWORD;
 		typedef unsigned long	INT32U;
 
 		/*
@@ -127,14 +124,14 @@
 
 		typedef union
 		{
-		    DWORD	val;
-		    BYTE	v[4];
-		} Q_BYTE;
+		    uint32_t	val;
+		    uint8_t	v[4];
+		} Q_uint8_t;
 
 		/*
 		 * Boolean type
 		 */
-		typedef BYTE BOOL;
+		typedef uint8_t BOOL;
 		#ifndef NULL
 			#define	NULL (void *)0
 		#endif
@@ -148,23 +145,23 @@
 
 	typedef	struct
 	{
-	    BYTE	Major;
-	    BYTE	Minor;
-	    WORD	Build;
+	    uint8_t		Major;
+	    uint8_t		Minor;
+	    uint16_t	Build;
 	} VERSION;
 
 	typedef	struct
 	{
-	    BYTE	Hour;
-	    BYTE	Minute;
+	    uint8_t	Hour;
+	    uint8_t	Minute;
 	} CLOCK_TIME;
 
-	#define LOW(x)  (BYTE) (x & 0xFF)
-	#define HIGH(x) (BYTE)((x >> 8) & 0xFF)
+	#define LOW(x)  (uint8_t) (x & 0xFF)
+	#define HIGH(x) (uint8_t)((x >> 8) & 0xFF)
 
 	#ifdef PIC32MX
 		#define NVM_ALLOCATE(_SCOPE_, name, align, bytes) \
-		    _SCOPE_ ROM BYTE __attribute__ ((aligned(align))) name[(bytes)] = \
+		    _SCOPE_ ROM uint8_t __attribute__ ((aligned(align))) name[(bytes)] = \
 		            {[0 ...(bytes)-1] = 0xFF}
 	#endif
 

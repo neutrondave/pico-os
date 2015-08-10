@@ -68,9 +68,9 @@
 
 	typedef struct
 	{
-	    K_LIST  SemLink;
-	    BYTE    SemCount;
-	} OS_sem;
+	    k_list_t  SemLink;
+	    uint8_t    SemCount;
+	} os_sem_t;
 
 	#ifdef PICO_C
 		#define _SCOPE_ /**/
@@ -91,7 +91,7 @@
 	        LC_SET((pt)->lc);							\
 	        if(!sem.SemCount && !(TaskTimerExpired(ME)))\
 	        {											\
-	            OS_Suspend( (K_LIST *)&sem );			\
+	            OS_Suspend( (k_list_t *)&sem );			\
 	            return PT_WAITING;						\
 	        }											\
 	    }												\
@@ -103,9 +103,9 @@
 	/*
 	 *	Semaphore related API services
 	 */
-	_SCOPE_ void OS_SemInit( OS_sem * );
-	_SCOPE_ void OS_SemSignal( OS_sem * );
-	_SCOPE_ BYTE OS_SemPeek( OS_sem * );
+	_SCOPE_ void OS_SemInit( os_sem_t * );
+	_SCOPE_ void OS_SemSignal( os_sem_t * );
+	_SCOPE_ uint8_t OS_SemPeek( os_sem_t * );
 
 	#undef _SCOPE_
 

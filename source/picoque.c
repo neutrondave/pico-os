@@ -125,7 +125,7 @@
 /*
  *********************************************************
  *
- *! OS_QueInit( OS_Queue *, size, BUFFER)
+ *! OS_QueInit( os_queue_t *, size, BUFFER)
  *!
  *! \param 		none.
  *!
@@ -133,8 +133,8 @@
  *!
  *! \return 	none.
  */
-PUBLIC void
-OS_QueInit(OS_Queue *q, Q_SIZE_T qsize, BYTE *buffer)
+void
+OS_QueInit(os_queue_t *q, q_size_t qsize, uint8_t *buffer)
 {
     q->qsize        = qsize;
     q->inptr        = 0;
@@ -145,7 +145,7 @@ OS_QueInit(OS_Queue *q, Q_SIZE_T qsize, BYTE *buffer)
 /*
  *********************************************************
  *
- *! OS_QueAdd( OS_Queue *, Q_TYPE_T * )
+ *! OS_QueAdd( os_queue_t *, q_type_t * )
  *!
  *! \param 		none.
  *!
@@ -153,8 +153,8 @@ OS_QueInit(OS_Queue *q, Q_SIZE_T qsize, BYTE *buffer)
  *!
  *! \return 	status.
  */
-PUBLIC BYTE
-OS_QueAdd(OS_Queue *q, Q_TYPE_T *item)
+uint8_t
+OS_QueAdd(os_queue_t *q, q_type_t *item)
 {
     if(!OS_QueFull(q))
     {
@@ -174,7 +174,7 @@ OS_QueAdd(OS_Queue *q, Q_TYPE_T *item)
 /*
  *********************************************************
  *
- *! OS_QuePutArray( OS_Queue *, Q_TYPE_T *, Q_SIZE_T )
+ *! OS_QuePutArray( os_queue_t *, q_type_t *, q_size_t )
  *!
  *! \param 		none.
  *!
@@ -182,10 +182,10 @@ OS_QueAdd(OS_Queue *q, Q_TYPE_T *item)
  *!
  *! \return 	number of items inserted
  */
-PUBLIC Q_SIZE_T
-OS_QuePutArray(OS_Queue *q, Q_TYPE_T *item, Q_SIZE_T len)
+q_size_t
+OS_QuePutArray(os_queue_t *q, q_type_t *item, q_size_t len)
 {
-    Q_SIZE_T putCount;
+    q_size_t putCount;
     
     putCount = 0;
     do
@@ -207,7 +207,7 @@ OS_QuePutArray(OS_Queue *q, Q_TYPE_T *item, Q_SIZE_T len)
 /*
  *********************************************************
  *
- *! OS_QuePutString( OS_Queue *, Q_TYPE_T * )
+ *! OS_QuePutString( os_queue_t *, q_type_t * )
  *!
  *! \param 		none.
  *!
@@ -215,10 +215,10 @@ OS_QuePutArray(OS_Queue *q, Q_TYPE_T *item, Q_SIZE_T len)
  *!
  *! \return 	number of items inserted
  */
-PUBLIC Q_SIZE_T
-OS_QuePutString(OS_Queue *q, Q_TYPE_T *item)
+q_size_t
+OS_QuePutString(os_queue_t *q, q_type_t *item)
 {
-    Q_SIZE_T putCount;
+    q_size_t putCount;
     
     putCount = 0;
     while (*item)
@@ -238,7 +238,7 @@ OS_QuePutString(OS_Queue *q, Q_TYPE_T *item)
 /*
  *********************************************************
  *
- *! OS_QueRemove( OS_Queue *, Q_TYPE_T *)
+ *! OS_QueRemove( os_queue_t *, q_type_t *)
  *!
  *! \param 		none.
  *!
@@ -246,8 +246,8 @@ OS_QuePutString(OS_Queue *q, Q_TYPE_T *item)
  *!
  *! \return 	status.
  */
-PUBLIC BYTE
-OS_QueRemove(OS_Queue *q, Q_TYPE_T *item)
+uint8_t
+OS_QueRemove(os_queue_t *q, q_type_t *item)
 {
     if(!OS_QueEmpty(q))
     {
@@ -267,7 +267,7 @@ OS_QueRemove(OS_Queue *q, Q_TYPE_T *item)
 /*
  *********************************************************
  *
- *! OS_QuePeek( OS_Queue *, Q_TYPE_T *)
+ *! OS_QuePeek( os_queue_t *, q_type_t *)
  *!
  *! \param 		none.
  *!
@@ -275,8 +275,8 @@ OS_QueRemove(OS_Queue *q, Q_TYPE_T *item)
  *!
  *! \return 	status.
  */
-PUBLIC BYTE
-OS_QuePeek(OS_Queue *q, Q_TYPE_T *item)
+uint8_t
+OS_QuePeek(os_queue_t *q, q_type_t *item)
 {
     if(!OS_QueEmpty(q))
     {
@@ -292,7 +292,7 @@ OS_QuePeek(OS_Queue *q, Q_TYPE_T *item)
 /*
  *********************************************************
  *
- *! OS_QueFlush( OS_Queue *)
+ *! OS_QueFlush( os_queue_t *)
  *!
  *! \param 		none.
  *!
@@ -300,13 +300,12 @@ OS_QuePeek(OS_Queue *q, Q_TYPE_T *item)
  *!
  *! \return 	none.
  */
-PUBLIC void
-OS_QueFlush(OS_Queue *q)
+void
+OS_QueFlush(os_queue_t *q)
 {
     q->inptr  = 0;
     q->outptr = 0;
 }
-
 /*
  * End picoque.c
  * Close the Doxygen group.

@@ -73,19 +73,19 @@
 	#define	Q_FULL		1
 	#define	Q_EMPTY		2
 
-	typedef unsigned char Q_SIZE_T;
-	typedef unsigned char Q_TYPE_T;
+	typedef uint8_t q_size_t;
+	typedef uint8_t q_type_t;
 
 	/*
-	* data types
+	 * data types
 	 */
 	typedef struct
 	{
-	    Q_SIZE_T  qsize;
-	    Q_SIZE_T  inptr;
-	    Q_SIZE_T  outptr;
-	    Q_TYPE_T *buff;
-	} OS_Queue;
+	    q_size_t  qsize;
+	    q_size_t  inptr;
+	    q_size_t  outptr;
+	    q_type_t *buff;
+	} os_queue_t;
 
 	/*
 	 ********************************************************************
@@ -93,27 +93,27 @@
 	 *   routines exposed by this module
 	 */
 	#ifdef PICOQ_C
-		#define _SCOPE_ PUBLIC	/**/
+		#define _SCOPE_ 	/**/
 	#else
-		#define _SCOPE_ EXTERN	/**/
+		#define _SCOPE_ extern	/**/
 	#endif
 
 	/*
-	*	Task related API services
-	*/
+	 *	Task related API services
+	 */
 
-	_SCOPE_ void     OS_QueInit(OS_Queue *, Q_SIZE_T, Q_TYPE_T *);
-	_SCOPE_ BYTE     OS_QueAdd(OS_Queue *, Q_TYPE_T *);
-	_SCOPE_ Q_SIZE_T OS_QuePutArray(OS_Queue *, Q_TYPE_T *, Q_SIZE_T);
-	_SCOPE_ BYTE     OS_QuePutString(OS_Queue *, Q_TYPE_T *);
-	_SCOPE_ BYTE     OS_QueRemove(OS_Queue *, Q_TYPE_T *);
-	_SCOPE_ BYTE     OS_QuePeek(OS_Queue *, Q_TYPE_T *);
-	_SCOPE_ void     OS_QueFlush(OS_Queue *);
-	#define		     OS_QuePut(q, i) 	OS_QueAdd(q, (Q_TYPE_T *)&i)
-	#define		     OS_QueGet(q, i) 	OS_QueRemove(q, (Q_TYPE_T *)&i)
+	_SCOPE_ void     OS_QueInit(os_queue_t *, q_size_t, q_type_t *);
+	_SCOPE_ uint8_t  OS_QueAdd(os_queue_t *, q_type_t *);
+	_SCOPE_ q_size_t OS_QuePutArray(os_queue_t *, q_type_t *, q_size_t);
+	_SCOPE_ uint8_t  OS_QuePutString(os_queue_t *, q_type_t *);
+	_SCOPE_ uint8_t  OS_QueRemove(os_queue_t *, q_type_t *);
+	_SCOPE_ uint8_t  OS_QuePeek(os_queue_t *, q_type_t *);
+	_SCOPE_ void     OS_QueFlush(os_queue_t *);
+	#define		     OS_QuePut(q, i) 	OS_QueAdd(q, (q_type_t *)&i)
+	#define		     OS_QueGet(q, i) 	OS_QueRemove(q, (q_type_t *)&i)
 	#define		     OS_QueEmpty(q)		(q->inptr == q->outptr)
 	#define		     OS_QueFull(q)		(((q->inptr + 1) % q->qsize) == q->outptr)
-	#define  		 OS_QueAvailable(q) (Q_SIZE_T)(q.outptr - q.inptr - 1)
+	#define  		 OS_QueAvailable(q) (q_size_t)(q.outptr - q.inptr - 1)
 	#undef _SCOPE_
 #endif
 /*

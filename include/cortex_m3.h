@@ -47,10 +47,10 @@
  *	Constants required to manipulate the NVIC.
  */
 
-#define NVIC_SYSTICK_CTRL		( ( volatile ULONG *) 0xe000e010 )
-#define NVIC_SYSTICK_LOAD		( ( volatile ULONG *) 0xe000e014 )
-#define NVIC_INT_CTRL			( ( volatile ULONG *) 0xe000ed04 )
-#define NVIC_SYSPRI2			( ( volatile ULONG *) 0xe000ed20 )
+#define NVIC_SYSTICK_CTRL		( ( volatile Uint32_t *) 0xe000e010 )
+#define NVIC_SYSTICK_LOAD		( ( volatile Uint32_t *) 0xe000e014 )
+#define NVIC_INT_CTRL			( ( volatile Uint32_t *) 0xe000ed04 )
+#define NVIC_SYSPRI2			( ( volatile Uint32_t *) 0xe000ed20 )
 #define NVIC_SYSTICK_CLK		                      0x00000004
 #define NVIC_SYSTICK_INT		                      0x00000002
 #define NVIC_SYSTICK_ENABLE		                      0x00000001

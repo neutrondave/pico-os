@@ -127,7 +127,7 @@
  *   Prototypes
  */
 
-PUBLIC	void 	SetupTickInterrupt( void );
+	void 	SetupTickInterrupt( void );
 
 /*
  ********************************************************************
@@ -141,12 +141,12 @@ PUBLIC	void 	SetupTickInterrupt( void );
  *   Module Data
  */
 
-LOCAL		WORD		OneSecPrescaler;
-EXTERN  	TCB_Entry  *CurTask;
-EXTERN  	K_LIST      k_ready_list, k_wait_list;
-EXTERN  	TCB_Entry   TCB[N_TASKS];
-EXTERN  	TIMER_T		CurrentTick;
-EXTERN		TIMER_T		LastTick;
+static uint16_t		OneSecPrescaler;
+extern tcb_entry_t  *CurTask;
+extern k_list_t     k_ready_list, k_wait_list;
+extern tcb_entry_t  TCB[N_TASKS];
+extern timer_t		CurrentTick;
+extern timer_t		LastTick;
 /*
  ********************************************************************
  *

@@ -137,12 +137,12 @@
  * @{
  */
 
-LOCAL 	K_LIST       k_ready_list;	/* !< list of tasks ready to run	                */
-LOCAL	K_LIST		 k_wait_list;	/* !< list of tasks waiting to run	                */
-LOCAL	Thook_Entry *k_thook_list;	/* !< list of functions to be executed every tick	*/
-LOCAL	Thook_Entry *k_loop_list;	/* !< list of tasks executed every kernel pass      */
-LOCAL 	TCB_Entry    TCB[N_TASKS];	/* !< pico taskc ontrol blocks						*/
-LOCAL	TIMER_T		 LastTick;		/* !< last captured timer value 					*/
+static 	k_list_t       k_ready_list;	/* !< list of tasks ready to run	                */
+static	k_list_t		 k_wait_list;	/* !< list of tasks waiting to run	                */
+static	t_hook_entry_t *k_thook_list;	/* !< list of functions to be executed every tick	*/
+static	t_hook_entry_t *k_loop_list;	/* !< list of tasks executed every kernel pass      */
+static 	tcb_entry_t    TCB[N_TASKS];	/* !< pico taskc ontrol blocks						*/
+static	timer_t		 LastTick;		/* !< last captured timer value 					*/
 /** @} */
 /*
  *********************************************************************
@@ -150,7 +150,7 @@ LOCAL	TIMER_T		 LastTick;		/* !< last captured timer value 					*/
  *   Prototypes
  */
 
-EXTERN 		void	SetupTickInterrupt(void);
+extern 		void	SetupTickInterrupt(void);
 
 /*
  *********************************************************************
@@ -208,7 +208,7 @@ OS_StartSched( void )
 
         if( &k_ready_list != k_ready_list.next )
         {
-            CurTask = (TCB_Entry *)k_ready_list.next;
+            CurTask = (tcb_entry_t *)k_ready_list.next;
             CurTask->pThread(&(CurTask->TCBpt));
         }
     }
@@ -248,15 +248,15 @@ OS_StartSched( void )
 void
 OS_Init( void )
 {
-    BYTE index = 0;
+    uint8_t index = 0;
     /*
      * initialize the target's tick hardware
      */
     SetupTickInterrupt();
     k_ready_list.next = k_ready_list.last = &k_ready_list;
     k_wait_list.next  = k_wait_list.last  = &k_wait_list;
-    k_thook_list	  = (Thook_Entry *)SL_NULL;
-    k_loop_list	      = (Thook_Entry *)SL_NULL;
+    k_thook_list	  = (t_hook_entry_t *)SL_NULL;
+    k_loop_list	      = (t_hook_entry_t *)SL_NULL;
     LastTick          = getSysTick();
     do
     {
@@ -294,14 +294,14 @@ OS_Init( void )
  #define myPrioLevel	8
  #define myTaskEnv		6
 
- int myTask(TCB_PT *);
+ int myTask(tcb_pt_t *);
 
  void
  anyfunc(void)
  {
-	TCB_Entry t_handle;
+	tcb_entry_t t_handle;
 	t_handle = OS_CreateTask(myPrioLevel, myTaskEnv, myTask);
-	if ((TCB_PT *)NULL != t_handle){
+	if ((tcb_pt_t *)NULL != t_handle){
 		task created successfully...
 	}
 	else {
@@ -311,12 +311,12 @@ OS_Init( void )
  \endcode
  *
  */
-TCB_Entry *
-OS_CreateTask( BYTE prio, BYTE env, int (*pr_addr)(TCB_PT *))
+tcb_entry_t *
+OS_CreateTask( uint8_t prio, uint8_t env, int (*pr_addr)(tcb_pt_t *))
 {
-    TCB_Entry *handle;
+    tcb_entry_t *handle;
     handle = OS_GetTCB();
-    if ((TCB_Entry *)Q_NULL != handle)
+    if ((tcb_entry_t *)Q_NULL != handle)
     {
         handle->Flags    = (prio & PRIOMASK);
         handle->TaskEnv  =  env;
@@ -349,18 +349,18 @@ OS_CreateTask( BYTE prio, BYTE env, int (*pr_addr)(TCB_PT *))
  #define myPrioLevel	8
  #define myTaskEnv		6
 
- int myTask(TCB_PT *);
- TCB_Entry *someTaskHandle;
+ int myTask(tcb_pt_t *);
+ tcb_entry_t *someTaskHandle;
 
  void
  anyfunc(void)
  {
-	TCB_Entry t_handle;
+	tcb_entry_t t_handle;
 
 	OS_ResumeTask(someTaskHandle);	// resume some task
 
 	t_handle = OS_CreateTask(myPrioLevel, myTaskEnv, myTask); // create a new task
-	if ((TCB_Entry *)NULL != t_handle){
+	if ((tcb_entry_t *)NULL != t_handle){
 		OS_ResumeTask(t_handle);							  // we were successful. resume it
 	}
 	else {
@@ -371,24 +371,24 @@ OS_CreateTask( BYTE prio, BYTE env, int (*pr_addr)(TCB_PT *))
  *
  */
 void
-OS_ResumeTask( TCB_Entry *tcbp )
+OS_ResumeTask( tcb_entry_t *tcbp )
 {
-    TCB_Entry *pReadyList;
+    tcb_entry_t *pReadyList;
     /*
      * remove the task from any queue it's waiting on
      * 	insert it onto the ready queue
      */
-    KQ_ndelete( (K_LIST *)tcbp );
-    pReadyList = (TCB_Entry *)k_ready_list.next;
-    while( &k_ready_list != (K_LIST *)pReadyList )
+    KQ_ndelete( (k_list_t *)tcbp );
+    pReadyList = (tcb_entry_t *)k_ready_list.next;
+    while( &k_ready_list != (k_list_t *)pReadyList )
     {
         if((pReadyList->Flags & PRIOMASK) > (tcbp->Flags & PRIOMASK))
         {
             break;
         }
-        pReadyList = (TCB_Entry *)pReadyList->TcbLink.next;
+        pReadyList = (tcb_entry_t *)pReadyList->TcbLink.next;
     }
-    KQ_qinsert((K_LIST *)pReadyList->TcbLink.last, (K_LIST *)tcbp);
+    KQ_qinsert((k_list_t *)pReadyList->TcbLink.last, (k_list_t *)tcbp);
 }
 
 /**
@@ -409,7 +409,7 @@ OS_ResumeTask( TCB_Entry *tcbp )
  \code
  #include pico.h
 
- TCB_Entry *someTaskHandle;
+ tcb_entry_t *someTaskHandle;
 
  void
  anyfunc(void)
@@ -422,9 +422,9 @@ OS_ResumeTask( TCB_Entry *tcbp )
  *
  */
 void
-OS_KillTask( TCB_Entry *tcbp )
+OS_KillTask( tcb_entry_t *tcbp )
 {
-    KQ_ndelete((K_LIST *)tcbp);
+    KQ_ndelete((k_list_t *)tcbp);
 }
 
 /**
@@ -446,13 +446,13 @@ OS_KillTask( TCB_Entry *tcbp )
  \code
  #include pico.h
 
- TCB_Entry *someTaskHandle;
- K_LIST someQueue;
+ tcb_entry_t *someTaskHandle;
+ k_list_t someQueue;
 
  void
  anyfunc(void)
  {
-	OS_SuspendTask(&someQueue, (K_LIST *)someTaskHandle);
+	OS_SuspendTask(&someQueue, (k_list_t *)someTaskHandle);
 
 	pico.h also supplies a useful macro for the more likely occasions
 		when the suspended task is the currently running task...
@@ -463,7 +463,7 @@ OS_KillTask( TCB_Entry *tcbp )
  *
  */
 void
-OS_SuspendTask( K_LIST *queue, K_LIST *node )
+OS_SuspendTask( k_list_t *queue, k_list_t *node )
 {
     /*
      * remove the task from any queue it's on
@@ -483,12 +483,12 @@ OS_SuspendTask( K_LIST *queue, K_LIST *node )
  *
  * \param	none
  *
- * \return 	TCB_Entry *; NULL if none available
+ * \return 	tcb_entry_t *; NULL if none available
  */
-TCB_Entry *
+tcb_entry_t *
 OS_GetTCB( void )
 {
-    BYTE index = 0;
+    uint8_t index = 0;
     do
     {
         if (TCB_FREE == (TCB[index].Flags & TCB_FREE))
@@ -498,7 +498,7 @@ OS_GetTCB( void )
         }
     }
     while ( ++index < N_TASKS );
-    return((TCB_Entry *)Q_NULL );
+    return((tcb_entry_t *)Q_NULL );
 }
 
 /**
@@ -514,10 +514,10 @@ OS_GetTCB( void )
  * \return 	none
  */
 void
-OS_ReleaseTCB( TCB_Entry *tcbp )
+OS_ReleaseTCB( tcb_entry_t *tcbp )
 {
-    tcbp->TcbLink.next = (K_LIST *)tcbp;
-    tcbp->TcbLink.last = (K_LIST *)tcbp;
+    tcbp->TcbLink.next = (k_list_t *)tcbp;
+    tcbp->TcbLink.last = (k_list_t *)tcbp;
     tcbp->Timer        =  0;
     tcbp->gpTimer      =  0;
     tcbp->Flags        = (TCB_FREE | PRIOMASK);
@@ -532,15 +532,15 @@ OS_ReleaseTCB( TCB_Entry *tcbp )
  *	regard to priority (LIFO), and all functions on the list will be
  *	invoked on every timer tick.
  *
- * \param	node		is the caller's Thook_Entry structure
+ * \param	node		is the caller's t_hook_entry_t structure
  * \param	function	is a pointer to caller's function
  *
  * \return	none
  */
 void
-OS_AddTimerHook( Thook_Entry *node, void (*tfun_addr)(void) )
+OS_AddTimerHook( t_hook_entry_t *node, void (*tfun_addr)(void) )
 {
-    OS_AddHook((Thook_Entry *)&k_thook_list, node, tfun_addr);
+    OS_AddHook((t_hook_entry_t *)&k_thook_list, node, tfun_addr);
 }
 
 /**
@@ -555,15 +555,15 @@ OS_AddTimerHook( Thook_Entry *node, void (*tfun_addr)(void) )
  *	time, while a convention task could run more often by leaving it on
  *	the ready queue, it would preempt everyone behind it.
  *
- * \param 	node		is the caller's Thook_Entry structure
+ * \param 	node		is the caller's t_hook_entry_t structure
  * \param 	function	is a pointer to the caller's function
  *
  * \return	none
  */
 void
-OS_AddSchedHook( Thook_Entry *node, void (*tfun_addr)(void) )
+OS_AddSchedHook( t_hook_entry_t *node, void (*tfun_addr)(void) )
 {
-    OS_AddHook((Thook_Entry *)&k_loop_list, node, tfun_addr);
+    OS_AddHook((t_hook_entry_t *)&k_loop_list, node, tfun_addr);
 }
 
 /**
@@ -572,17 +572,17 @@ OS_AddSchedHook( Thook_Entry *node, void (*tfun_addr)(void) )
  *
  * This is a low level function to add a hook to any singly linked list.
  *
- * \param 	list		is the caller's Thook_Entry structure
+ * \param 	list		is the caller's t_hook_entry_t structure
  * \param	node 	    the node to insert
  * \param	function	is a pointer to the caller's function
  *
  * \return	none
  */
 void
-OS_AddHook( Thook_Entry *list, Thook_Entry *node, void (*tfun_addr)(void) )
+OS_AddHook( t_hook_entry_t *list, t_hook_entry_t *node, void (*tfun_addr)(void) )
 {
     node->Thookfun  = tfun_addr;
-    KQ_slinsert((K_SLIST *)list, (K_SLIST *)node);
+    KQ_slinsert((k_slist_t *)list, (k_slist_t *)node);
 }
 
 /**
@@ -593,14 +593,14 @@ OS_AddHook( Thook_Entry *list, Thook_Entry *node, void (*tfun_addr)(void) )
  *	application to dynamically hook and unhook to the system timer
  *	interrupt as necessary.
  *
- * \param	node		is the caller's Thook_Entry structure
+ * \param	node		is the caller's t_hook_entry_t structure
  *
  * \return 	none
  */
 void
-OS_ReleaseTimerHook( Thook_Entry *node )
+OS_ReleaseTimerHook( t_hook_entry_t *node )
 {
-    OS_ReleaseHook((Thook_Entry *)&k_thook_list, node);
+    OS_ReleaseHook((t_hook_entry_t *)&k_thook_list, node);
 }
 
 /**
@@ -611,14 +611,14 @@ OS_ReleaseTimerHook( Thook_Entry *node )
  *	application to dynamically hook and unhook to the kernel main loop
  *	as necessary.
  *
- * \param	node		is the caller's Thook_Entry structure
+ * \param	node		is the caller's t_hook_entry_t structure
  *
  * \return	none
  */
 void
-OS_ReleaseSchedHook( Thook_Entry *node )
+OS_ReleaseSchedHook( t_hook_entry_t *node )
 {
-    OS_ReleaseHook((Thook_Entry *)&k_loop_list, node);
+    OS_ReleaseHook((t_hook_entry_t *)&k_loop_list, node);
 }
 
 /**
@@ -627,15 +627,15 @@ OS_ReleaseSchedHook( Thook_Entry *node )
  *
  * Low level function to release a hook node from a singly linked list.
  *
- * \param 	list		is the caller's Thook_Entry structure
+ * \param 	list		is the caller's t_hook_entry_t structure
  * \param	node 	    is the node to remove
  *
  * \return	none
  */
 void
-OS_ReleaseHook( Thook_Entry *list, Thook_Entry *node )
+OS_ReleaseHook( t_hook_entry_t *list, t_hook_entry_t *node )
 {
-    KQ_slndelete((K_SLIST *)list, (K_SLIST *)node);
+    KQ_slndelete((k_slist_t *)list, (k_slist_t *)node);
 }
 
 /**
@@ -651,7 +651,7 @@ OS_ReleaseHook( Thook_Entry *list, Thook_Entry *node )
  * \return 	none
  */
 void
-KQ_qinsert( K_LIST *queue, K_LIST *node )
+KQ_qinsert( k_list_t *queue, k_list_t *node )
 {
     node->next 		   = queue->next;
     node->last 		   = queue;
@@ -672,10 +672,10 @@ KQ_qinsert( K_LIST *queue, K_LIST *node )
  *
  * \return 	deleted node; NULL if none
  */
-K_LIST *
-KQ_qdelete( K_LIST *queue )
+k_list_t *
+KQ_qdelete( k_list_t *queue )
 {
-    K_LIST *node;		/* the deleted node */
+    k_list_t *node;		/* the deleted node */
     if (queue->next == queue )
     {
         return( Q_NULL );
@@ -698,10 +698,10 @@ KQ_qdelete( K_LIST *queue )
  * \return 	none
  */
 void
-KQ_ndelete( K_LIST *node )
+KQ_ndelete( k_list_t *node )
 {
-    K_LIST *next_node;
-    K_LIST *last_node;
+    k_list_t *next_node;
+    k_list_t *last_node;
     last_node 		= node->last;
     next_node 		= node->next;
     last_node->next = next_node;
@@ -723,7 +723,7 @@ KQ_ndelete( K_LIST *node )
  * \return 	none
  */
 void
-KQ_slinsert( K_SLIST *s_list, K_SLIST *node )
+KQ_slinsert( k_slist_t *s_list, k_slist_t *node )
 {
     node->next 	 = s_list->next;
     s_list->next = node;
@@ -741,10 +741,10 @@ KQ_slinsert( K_SLIST *s_list, K_SLIST *node )
  *
  * \return 	the deleted node; NULL if none
  */
-K_SLIST *
-KQ_sldelete( K_SLIST *s_list )
+k_slist_t *
+KQ_sldelete( k_slist_t *s_list )
 {
-    K_SLIST *node;		/* the deleted node */
+    k_slist_t *node;		/* the deleted node */
     node = s_list->next;
     if (SL_NULL != s_list->next)
     {
@@ -767,9 +767,9 @@ KQ_sldelete( K_SLIST *s_list )
  * \return 	none
  */
 void
-KQ_slndelete( K_SLIST *s_list, K_SLIST *node )
+KQ_slndelete( k_slist_t *s_list, k_slist_t *node )
 {
-    K_SLIST *next_node;
+    k_slist_t *next_node;
     for((next_node = s_list->next); (SL_NULL != next_node); (next_node = s_list->next))
     {
         if (next_node->next == node)
@@ -802,13 +802,13 @@ KQ_slndelete( K_SLIST *s_list, K_SLIST *node )
  */
 
 void
-OS_Delay( TCB_Entry *task, TIMER_T delay )
+OS_Delay( tcb_entry_t *task, timer_t delay )
 {
     /*
      * remove the task from any queue it's on
      *	set the timer value and leave ...
      */
-    KQ_ndelete((K_LIST *)task);
+    KQ_ndelete((k_list_t *)task);
     setTaskTimer( task, delay );
     startTaskTimer( task );
 }
@@ -827,9 +827,9 @@ OS_Delay( TCB_Entry *task, TIMER_T delay )
  * \return 	none
  */
 void
-OS_TickDelay( WORD delay )
+OS_TickDelay( uint16_t delay )
 {
-    TIMER_T		TempTick;
+    timer_t		TempTick;
     TempTick = CurrentTick + delay;
     TempTick += 1;
     do
@@ -871,9 +871,9 @@ OS_TimerHook( void )
  * \return 	none
  */
 void
-OS_HookHandler( Thook_Entry *hooks )
+OS_HookHandler( t_hook_entry_t *hooks )
 {
-    for(; SL_NULL != (K_SLIST *)hooks ; hooks = (Thook_Entry *)hooks->ThookLink.next)
+    for(; SL_NULL != (k_slist_t *)hooks ; hooks = (t_hook_entry_t *)hooks->ThookLink.next)
     {
         hooks->Thookfun();
     }
@@ -903,9 +903,9 @@ OS_HookHandler( Thook_Entry *hooks )
 void
 ServiceOSTimers( void )
 {
-    BYTE 		TcbIndex;
-    TIMER_T 	temp_t;
-    TIMER_T 	ElapsedTime;
+    uint8_t 	TcbIndex;
+    timer_t 	temp_t;
+    timer_t 	ElapsedTime;
     temp_t 		=  getSysTick();
     ElapsedTime = (temp_t - LastTick);
     LastTick 	=  temp_t;
@@ -953,14 +953,13 @@ ServiceOSTimers( void )
                     TCB[TcbIndex].Timer  =  TIME_EXPIRED;
                     TCB[TcbIndex].Flags &= ~TCB_TIMING;
                     TCB[TcbIndex].Flags |=  TCB_TIMEOUT;
-                    KQ_ndelete((K_LIST *)&TCB[TcbIndex]);
+                    KQ_ndelete((k_list_t *)&TCB[TcbIndex]);
                     OS_ResumeTask(&TCB[TcbIndex]);
                 }
             }
         }
     }
 }
-/** @} */
 /** @}
  * End pico.c
  *

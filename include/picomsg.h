@@ -69,15 +69,15 @@
 
 	typedef struct
 	{
-	    K_LIST  MsgList;
-	    BYTE    *message;
-	} OS_msg;
+	    k_list_t MsgList;
+	    uint8_t  *message;
+	} os_msg_t;
 
 	typedef struct
 	{
-	    K_LIST	MsgQueue;
-	    OS_sem	MBoxSem;
-	} OS_MailBox;
+	    k_list_t MsgQueue;
+	    os_sem_t MBoxSem;
+	} os_mail_t;
 
 	#ifdef PICOMSG_C
 		#define _SCOPE_ /**/
@@ -98,7 +98,7 @@
 	            LC_SET((pt)->lc);										\
 	            if(!mbox->MBoxSem.SemCount && !(TaskTimerExpired(ME)))	\
 	            {														\
-	                OS_Suspend((K_LIST *)&mbox->MBoxSem);				\
+	                OS_Suspend((k_list_t *)&mbox->MBoxSem);				\
 	                return PT_WAITING;									\
 	            }														\
 	    }																\
@@ -106,17 +106,17 @@
 	    if (sem.SemCount)												\
 	    {																\
 	        sem.SemCount--;												\
-	        msg = (OS_msg *)KQ_qdelete((K_LIST *)mbox)  				\
+	        msg = (os_msg_t *)KQ_qdelete((k_list_t *)mbox)  				\
 	    }																\
 	           
 	/*
 	 *	Messaging related API services
 	 */
-	_SCOPE_ void OS_MBoxInit( OS_MailBox * );
-	_SCOPE_ void OS_MsgInit( OS_msg * );
-	_SCOPE_ void OS_MsgSend( OS_msg *, OS_MailBox * );
+	_SCOPE_ void OS_MBoxInit( os_mail_t * );
+	_SCOPE_ void OS_MsgInit( os_msg_t * );
+	_SCOPE_ void OS_MsgSend( os_msg_t *, os_mail_t * );
 	#define 	 OS_MsgPeek(m)  OS_SemPeek(&m->MBoxSem)
-	#define		 OS_NO_REPLY	(OS_MailBox *)0
+	#define		 OS_NO_REPLY	(os_mail_t *)0
 
 	#undef _SCOPE_
 

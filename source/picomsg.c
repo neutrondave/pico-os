@@ -69,42 +69,41 @@
 #include				"pico.h"
 #include				"picosem.h"
 #include				"picomsg.h"
-
 /*
  *********************************************************
  *
- * void OS_MBoxInit(  OS_MailBox *MBox  )
+ * void OS_MBoxInit(  os_mail_t *MBox  )
  *	initialize a Mailbox
  */
 void
-OS_MBoxInit( OS_MailBox *MBox )
+OS_MBoxInit( os_mail_t *MBox )
 {
     OS_SemInit( &MBox->MBoxSem );
-    MBox->MsgQueue.next = MBox->MsgQueue.last = (K_LIST *)MBox;
+    MBox->MsgQueue.next = MBox->MsgQueue.last = (k_list_t *)MBox;
 }
 
 /*
  *********************************************************
  *
- * void OS_MsgInit(  OS_msg *Msg  )
+ * void OS_MsgInit(  os_msg_t *Msg  )
  *	initialize pointers in a message record
  */
 void
-OS_MsgInit( OS_msg *Msg )
+OS_MsgInit( os_msg_t *Msg )
 {
-    Msg->MsgList.next = Msg->MsgList.last = (K_LIST *)Msg;
+    Msg->MsgList.next = Msg->MsgList.last = (k_list_t *)Msg;
 }
 
 /*
  *********************************************************
  *
- * void OS_MsgSend(  OS_msg *Msg, OS_MailBox *MBox, OS_MailBox *reply  )
+ * void OS_MsgSend(  os_msg_t *Msg, os_mail_t *MBox, os_mail_t *reply  )
  *	send a message
  */
 void
-OS_MsgSend( OS_msg *Msg, OS_MailBox *MBox )
+OS_MsgSend( os_msg_t *Msg, os_mail_t *MBox )
 {
-    KQ_qinsert( (K_LIST *)MBox, (K_LIST *)Msg );
+    KQ_qinsert( (k_list_t *)MBox, (k_list_t *)Msg );
     OS_SemSignal( &MBox->MBoxSem );
 }
 

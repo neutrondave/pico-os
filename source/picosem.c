@@ -101,10 +101,10 @@
  *
  */
 void
-OS_SemInit( OS_sem *sem )
+OS_SemInit( os_sem_t *sem )
 {
     sem->SemCount = 0;
-    sem->SemLink.next = sem->SemLink.last = (K_LIST *)sem;
+    sem->SemLink.next = sem->SemLink.last = (k_list_t *)sem;
 }
 
 /**
@@ -119,16 +119,16 @@ OS_SemInit( OS_sem *sem )
  * \return	none
  */
 void
-OS_SemSignal( OS_sem *sem )
+OS_SemSignal( os_sem_t *sem )
 {
-    if( sem->SemLink.next != ( K_LIST *)sem )
+    if( sem->SemLink.next != ( k_list_t *)sem )
         {
-            while( sem->SemLink.next != ( K_LIST *)sem )
+            while( sem->SemLink.next != ( k_list_t *)sem )
                 {
                     /*
                      * resume anyone wating on this semaphore
                      */
-                    OS_ResumeTask( (TCB_Entry *)sem->SemLink.next );
+                    OS_ResumeTask( (tcb_entry_t *)sem->SemLink.next );
                 }
         }
     /*
@@ -165,12 +165,11 @@ OS_SemSignal( OS_sem *sem )
 *
 * \return	semaphore count value
 */
-BYTE
-OS_SemPeek( OS_sem *sem )
+uint8_t
+OS_SemPeek( os_sem_t *sem )
 {
     return(sem->SemCount);
 }
-/** @} */
 /** @} */
 /*
  *  END OF picosem.c

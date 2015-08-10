@@ -68,13 +68,13 @@
  */
 #define N_TASKS         	                           8
 
-#define	CPU_CLOCK_HZ		            ((ULONG)50000000)
-#define	TICK_RATE_HZ		            ((ULONG)     100)
-#define BYTE_ALIGNMENT  	 	                       4
+#define	CPU_CLOCK_HZ		            ((Uint32_t)50000000)
+#define	TICK_RATE_HZ		            ((Uint32_t)     100)
+#define uint8_t_ALIGNMENT  	 	                       4
 #define	T_STK_SZE_MIN			                (128 * 4)
 
-#define	T_ONE_SEC			        ((ULONG)TICK_RATE_HZ)
-#define	T_ONE_MS			((ULONG)(1000 / TICK_RATE_HZ))
+#define	T_ONE_SEC			        ((Uint32_t)TICK_RATE_HZ)
+#define	T_ONE_MS			((Uint32_t)(1000 / TICK_RATE_HZ))
 
 #include	"board_cfg.h"
 

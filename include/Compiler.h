@@ -88,17 +88,17 @@
 
 // Base RAM and ROM pointer types for given architecture
 #if defined(__PIC32MX__)
-#define PTR_BASE		DWORD
-#define ROM_PTR_BASE	DWORD
+#define PTR_BASE		uint32_t
+#define ROM_PTR_BASE	uint32_t
 #elif defined(__C30__)
-#define PTR_BASE		WORD
-#define ROM_PTR_BASE	WORD
+#define PTR_BASE		uint16_t
+#define ROM_PTR_BASE	uint16_t
 #elif defined(__18CXX)
-#define PTR_BASE		WORD
+#define PTR_BASE		uint16_t
 #define ROM_PTR_BASE	unsigned short long
 #if defined(HI_TECH_C)
 #undef ROM_PTR_BASE
-#define ROM_PTR_BASE	DWORD
+#define ROM_PTR_BASE	uint32_t
 #endif
 #endif
 

@@ -75,16 +75,16 @@
 	 */
 	typedef struct
 	{
-		BYTE      port;
-		DWORD     bitrate;
-		BYTE      parity;
-		BYTE      stop;
-		BYTE      DataCtrl;
-		BYTE      TxPrio;
-		BYTE      RxPrio;
-		BYTE      wake;
-		OS_Queue *serTxQ;
-		OS_Queue *serRxQ;
+		uint8_t      port;
+		uint32_t     bitrate;
+		uint8_t      parity;
+		uint8_t      stop;
+		uint8_t      DataCtrl;
+		uint8_t      TxPrio;
+		uint8_t      RxPrio;
+		uint8_t      wake;
+		os_queue_t *serTxQ;
+		os_queue_t *serRxQ;
 	} SerPortInfo;
 
 	#define	SER_PORT1		0
@@ -116,13 +116,13 @@
 	 *  Prototypes
 	 */
 	#ifdef PICOSER_C
-		#define _SCOPE_ PUBLIC	/**/
+		#define _SCOPE_ 	/**/
 	#else
-		#define _SCOPE_ EXTERN	/**/
+		#define _SCOPE_ extern	/**/
 	#endif
 
-	_SCOPE_ BYTE SerialInit(SerPortInfo *portInfo);
-	_SCOPE_ void SerialTxStart(BYTE port);
+	_SCOPE_ uint8_t SerialInit(SerPortInfo *portInfo);
+	_SCOPE_ void SerialTxStart(uint8_t port);
 
 	#ifdef ENABLE_UART1_DRIVER
 	    _SCOPE_  void   _U1RXInterrupt( void );

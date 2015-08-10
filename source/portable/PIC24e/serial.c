@@ -103,20 +103,20 @@
  *   Module Globals
  */
 #ifdef ENABLE_UART1_DRIVER
-    LOCAL OS_Queue *Rx1Que;
-    LOCAL OS_Queue *Tx1Que;
+    static os_queue_t *Rx1Que;
+    static os_queue_t *Tx1Que;
 #endif
 #ifdef ENABLE_UART2_DRIVER
-    LOCAL OS_Queue *Rx2Que;
-    LOCAL OS_Queue *Tx2Que;
+    static os_queue_t *Rx2Que;
+    static os_queue_t *Tx2Que;
 #endif
 #ifdef ENABLE_UART3_DRIVER
-    LOCAL OS_Queue *Rx3Que;
-    LOCAL OS_Queue *Tx3Que;
+    static os_queue_t *Rx3Que;
+    static os_queue_t *Tx3Que;
 #endif
 #ifdef ENABLE_UART4_DRIVER
-    LOCAL OS_Queue *Rx4Que;
-    LOCAL OS_Queue *Tx4Que;
+    static os_queue_t *Rx4Que;
+    static os_queue_t *Tx4Que;
 #endif
 
 /*
@@ -124,23 +124,23 @@
  *
  *   Prototypes
  */
-PUBLIC BYTE UARTInit(SerPortInfo *portInfo);
+ uint8_t UARTInit(SerPortInfo *portInfo);
 
 #ifdef ENABLE_UART1_DRIVER
-    PUBLIC  void   _U1RXInterrupt( void );
-    PUBLIC  void   _U1TXInterrupt( void );
+      void   _U1RXInterrupt( void );
+      void   _U1TXInterrupt( void );
 #endif
 #ifdef ENABLE_UART2_DRIVER
-    PUBLIC  void   _U2RXInterrupt( void );
-    PUBLIC  void   _U2TXInterrupt( void );
+      void   _U2RXInterrupt( void );
+      void   _U2TXInterrupt( void );
 #endif
 #ifdef ENABLE_UART3_DRIVER
-    PUBLIC  void   _U3RXInterrupt( void );
-    PUBLIC  void   _U3TXInterrupt( void );
+      void   _U3RXInterrupt( void );
+      void   _U3TXInterrupt( void );
 #endif
 #ifdef ENABLE_UART4_DRIVER
-    PUBLIC  void   _U4RXInterrupt( void );
-    PUBLIC  void   _U4TXInterrupt( void );
+      void   _U4RXInterrupt( void );
+      void   _U4TXInterrupt( void );
 #endif
 
 /*
@@ -166,11 +166,11 @@ PUBLIC BYTE UARTInit(SerPortInfo *portInfo);
  *  OUTPUT:			result
  *
  *******************************************************************/
-PUBLIC BYTE 
+ uint8_t 
 SerialInit(SerPortInfo *portInfo)
 {
-    BYTE retval;
-    WORD BaudDivide;
+    uint8_t retval;
+    uint16_t BaudDivide;
     
     retval = SER_SET_PASS;
     /*
@@ -284,8 +284,8 @@ SerialInit(SerPortInfo *portInfo)
  *  OUTPUT:			none
  *
  *******************************************************************/
-PUBLIC void 
-SerialTxStart(BYTE port)
+ void 
+SerialTxStart(uint8_t port)
 {
     switch (port)
     {
@@ -345,7 +345,7 @@ SerialTxStart(BYTE port)
 void
 __attribute__((interrupt, no_auto_psv)) _U1RXInterrupt(void)
 {
-    WORD temp;
+    uint16_t temp;
     /*
      * clear interrupt flag
      */
@@ -399,7 +399,7 @@ __attribute__((interrupt, no_auto_psv)) _U1RXInterrupt(void)
 void 
 __attribute__((interrupt, no_auto_psv)) _U1TXInterrupt(void)
 {
-    Q_TYPE_T temp;
+    q_type_t temp;
 
     IFS0bits.U1TXIF = 0;
     #ifdef ENABLE_UART1_DRIVER
@@ -432,7 +432,7 @@ __attribute__((interrupt, no_auto_psv)) _U1TXInterrupt(void)
 void
 __attribute__((interrupt, no_auto_psv)) _U2RXInterrupt(void)
 {
-    WORD temp;
+    uint16_t temp;
     /*
      * clear interrupt flag
      */
@@ -486,7 +486,7 @@ __attribute__((interrupt, no_auto_psv)) _U2RXInterrupt(void)
 void 
 __attribute__((interrupt, no_auto_psv)) _U2TXInterrupt(void)
 {
-    Q_TYPE_T temp;
+    q_type_t temp;
 
     IFS1bits.U2TXIF = 0;
     #ifdef ENABLE_UART2_DRIVER
@@ -519,7 +519,7 @@ __attribute__((interrupt, no_auto_psv)) _U2TXInterrupt(void)
 void
 __attribute__((interrupt, no_auto_psv)) _U3RXInterrupt(void)
 {
-    WORD temp;
+    uint16_t temp;
     /*
      * clear interrupt flag
      */
@@ -573,7 +573,7 @@ __attribute__((interrupt, no_auto_psv)) _U3RXInterrupt(void)
 void 
 __attribute__((interrupt, no_auto_psv)) _U3TXInterrupt(void)
 {
-    Q_TYPE_T temp;
+    q_type_t temp;
 
     IFS5bits.U3TXIF = 0;
     #ifdef ENABLE_UART3_DRIVER
@@ -606,7 +606,7 @@ __attribute__((interrupt, no_auto_psv)) _U3TXInterrupt(void)
 void
 __attribute__((interrupt, no_auto_psv)) _U4RXInterrupt(void)
 {
-    WORD temp;
+    uint16_t temp;
     /*
      * clear interrupt flag
      */
@@ -660,7 +660,7 @@ __attribute__((interrupt, no_auto_psv)) _U4RXInterrupt(void)
 void 
 __attribute__((interrupt, no_auto_psv)) _U4TXInterrupt(void)
 {
-    Q_TYPE_T temp;
+    q_type_t temp;
 
     IFS5bits.U4TXIF = 0;
     #ifdef ENABLE_UART4_DRIVER
