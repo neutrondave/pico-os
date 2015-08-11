@@ -81,9 +81,9 @@
 //#include 	<GenericTypeDefs.h>
 //#include    "HardwareProfile.h"
 #elif defined(CORTEXM3)
-#include	"hw_types.h"
-#include	"cortex_m3.h"
-#include	"interrupt.h"
+//#include	"hw_types.h"
+//#include	"cortex_m3.h"
+//#include	"interrupt.h"
 #else
 #error Unknown processor or compiler.
 #endif
@@ -120,6 +120,7 @@
  */
 #define DI()	IntMasterDisable()
 #define EI()	IntMasterEnable()
+#define ClrWdt()
 #endif
 
 #define ENTER_CRITICAL()		DI()

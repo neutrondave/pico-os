@@ -247,8 +247,6 @@
 	_SCOPE_ void        OS_DelayUs( uint32_t );
 	_SCOPE_ void        OS_DelayMs( uint16_t );
 	_SCOPE_ void        OS_TickDelay( uint16_t );
-	_SCOPE_ tcb_entry_t  *OS_GetTCB( void );
-	_SCOPE_ void 	    OS_ReleaseTCB( tcb_entry_t * );
 	_SCOPE_ void 	    KQ_qinsert( k_list_t *, k_list_t * );
 	_SCOPE_ k_list_t     *KQ_qdelete( k_list_t * );
 	_SCOPE_ void        KQ_ndelete( k_list_t * );
@@ -262,9 +260,7 @@
 
 	_SCOPE_ tcb_entry_t	*CurTask;
 	_SCOPE_ timer_t		CurrentTick;
-	_SCOPE_	uint32_t	OSTickSeconds __attribute__ ((persistent));
-
-	extern 				tcb_entry_t   *CurTask;
+	_SCOPE_	uint32_t	OSTickSeconds;
 
 	/*
 	 *	kernel event flags, ...

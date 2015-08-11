@@ -77,8 +77,6 @@
 #endif
 #include <p32xxxx.h>
 #include <plib.h>
-#else
-#error Unknown processor or compiler.  See Compiler.h
 #endif
 
 #include <stdio.h>

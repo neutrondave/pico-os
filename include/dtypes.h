@@ -115,11 +115,11 @@
 		/*
 		 * These types are assumed as 64-bit integer
 		 */
-		typedef signed   long long LONG64;
-		typedef signed 	 long long S_QWORD;
-		typedef signed 	 long long INT64S;
-		typedef unsigned long long QWORD;
-		typedef unsigned long long INT64U;
+		typedef int64_t LONG64;
+		typedef int64_t S_QWORD;
+		typedef int64_t INT64S;
+		typedef uint64_t QWORD;
+		typedef uint64_t INT64U;
 
 		typedef union
 		{
@@ -138,9 +138,9 @@
 		#define	TRUE			1
 		#define	FALSE			0
 	#endif
-	typedef unsigned short	   USHORT;
-	typedef unsigned long	   ULONG;
-	typedef unsigned long long ULONG64;
+	typedef uint16_t USHORT;
+	typedef uint32_t ULONG;
+	typedef uint64_t ULONG64;
 
 	typedef	struct
 	{
