@@ -67,13 +67,12 @@
 #ifndef	_DTYPES_H
 	#define	_DTYPES_H
 
-	#include "compiler.h"
+        #include <stdint.h>
+        #include "compiler.h"
 	/*
 	 * data scope
 	 */
-	#define	
 	#define	PRIVATE static
-	#define	static  static
 	#define	extern  extern
 
 	/*
@@ -124,9 +123,9 @@
 
 		typedef union
 		{
-		    uint32_t	val;
-		    uint8_t	v[4];
-		} Q_uint8_t;
+		    uint32_t val;
+		    uint8_t	 v[4];
+		} Q_BYTE;
 
 		/*
 		 * Boolean type
