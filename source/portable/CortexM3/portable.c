@@ -72,25 +72,10 @@
  *
  *   System Includes
  */
-
 #define 	 PORTABLE_C
 #include	"pico.h"
 #include	"portable.h"
-
-#include 	"hw_ints.h"
-#include 	"hw_memmap.h"
-#include 	"hw_sysctl.h"
-#include 	"hw_types.h"
-#include	"interrupt.h"
-#include 	"flash.h"
-#include 	"adc.h"
-#include 	"debug.h"
-#include 	"gpio.h"
-#include 	"pwm.h"
-#include 	"sysctl.h"
-#include 	"uart.h"
-#include 	"systick.h"
-
+#include    "HardwareProfile.h"
 /*
  ********************************************************************
  *
@@ -127,7 +112,14 @@
  *   Prototypes
  */
 
-	void 	SetupTickInterrupt( void );
+void 	OS_DelayUs( uint32_t );
+void 	OS_DelayMs( uint16_t );
+void   _T1Interrupt( void );
+void   _OscillatorFail(void);
+void   _AddressError(void);
+void   _StackError(void);
+void   _MathError(void);
+void 	SetupTickInterrupt( void );
 
 /*
  ********************************************************************
@@ -147,16 +139,10 @@ extern k_list_t     k_ready_list, k_wait_list;
 extern tcb_entry_t  TCB[N_TASKS];
 extern timer_t		CurrentTick;
 extern timer_t		LastTick;
-/*
- ********************************************************************
- *
- *	Interrupt priority definitions for the Luminary (TI) Cortex.  The top
- *  3 bits of these values are significant with lower values
- *  indicating higher priority interrupts.
- */
 
-#define SYSTICK_INT_PRIORITY    0x80
-#define ETHERNET_INT_PRIORITY   0xC0
+#define SYS_FREQ 		CPU_CLOCK_HZ
+#define T1_PRESCALE		8
+#define T1_RELOAD		(SYS_FREQ/T1_PRESCALE/TICK_RATE_HZ)
 
 /********************************************************************
  *  DESC
@@ -179,11 +165,173 @@ SetupTickInterrupt( void )
      *	interrupt at the requested rate.
      *			and start it.
      */
-    SysTickPeriodSet(SysCtlClockGet() / TICK_RATE_HZ);
-    SysTickEnable();
-    SysTickIntEnable();
+    /*
+     * turn off timer 1, clear it, set it,
+     *	and turn it on...
+     */
+    TMR1  		 		= 0;			/* clear the timer register 	*/
+    PR1   		 		= T1_RELOAD;	/* set the prescaler			*/
+    T1CON				= 0;			/* reset the timer control reg	*/
+    T1CONbits.TCKPS0	= 1;			/* div by 8						*/
+    T1CONbits.TCKPS1	= 0;			/* "							*/
+    IPC0bits.T1IP		= 4;			/* priority level				*/
+    IFS0bits.T1IF		= 0;			/* clear the interrupt flag		*/
+    IEC0bits.T1IE		= 1;			/* enable the timer interrupt	*/
+    SRbits.IPL	 		= 3;			/* cpu priority levels 4-7		*/
+    T1CONbits.TON		= 1;			/* start the timer				*/
 }
-#endif
+
+/********************************************************************
+ *  DESC
+ *
+ *  ROUTINE NAME:	OS_DelayUs
+ *
+ *  DESCRIPTION:	OS_Delay in units of 1uS
+ *
+ *  INPUT:			Delay interval
+ *
+ *  OUTPUT:			none
+ *
+ *******************************************************************/
+
+void
+OS_DelayUs( uint32_t MicroSecondCounter )
+{
+    uint32_t i;
+    for (i = 0; i < MicroSecondCounter; i++)
+    {
+        __asm__ volatile ("repeat #25");
+        __asm__ volatile ("nop");
+    }
+}
+
+/********************************************************************
+ *  DESC
+ *
+ *  ROUTINE NAME:	OS_DelayMs
+ *
+ *  DESCRIPTION:	OS_Delay in units of 1mS
+ *
+ *  INPUT:			Delay interval
+ *
+ *  OUTPUT:			none
+ *
+ *******************************************************************/
+void
+OS_DelayMs( uint16_t ms )
+{
+    while (ms--)
+    {
+        OS_DelayUs(1000);
+    }
+}
+
+/********************************************************************
+ *  DESC
+ *
+ *  ROUTINE NAME:   _T1Interrupt
+ *
+ *  DESCRIPTION:    OS timer interrupt. For the PIC24E we chose to use
+ *					timer 1. should that change, modify the setup and
+ *                  the interrupt vector
+ *
+ *  INPUT:			none
+ *
+ *  OUTPUT:			none
+ *
+ *******************************************************************/
+
+void
+__attribute__((interrupt, no_auto_psv)) _T1Interrupt(void)
+{
+    /*
+     * clear the interrupt flag
+     *	and handle the event
+     */
+    IFS0bits.T1IF	= 0;
+    OS_TimerHook();
+    if (0 == --OneSecPrescaler)
+    {
+        OneSecPrescaler = SYSTICKHZ;
+        OSTickSeconds++;
+    }
+}
+
+/********************************************************************
+ *  DESC
+ *
+ *  ROUTINE NAME:	_OscillatorFail
+ *
+ *  DESCRIPTION:	PIC24E oscillator fail exception interrupt handler
+ *
+ *  INPUT:			none
+ *
+ *  OUTPUT:			does not return
+ *
+ *******************************************************************/
+
+void
+__attribute__((interrupt, no_auto_psv)) _OscillatorFail(void)
+{
+    while (1);
+}
+
+/********************************************************************
+ *  DESC
+ *
+ *  ROUTINE NAME:	_AddressError
+ *
+ *  DESCRIPTION:	PIC24E address fail exception interrupt handler
+ *
+ *  INPUT:			none
+ *
+ *  OUTPUT:			does not return
+ *
+ *******************************************************************/
+
+void
+__attribute__((interrupt, no_auto_psv)) _AddressError(void)
+{
+    while (1);
+}
+
+/********************************************************************
+ *  DESC
+ *
+ *  ROUTINE NAME:	_StackError
+ *
+ *  DESCRIPTION:	PIC24E stack fail exception interrupt handler
+ *
+ *  INPUT:			none
+ *
+ *  OUTPUT:			does not return
+ *
+ *******************************************************************/
+
+void
+__attribute__((interrupt, no_auto_psv)) _StackError(void)
+{
+    while (1);
+}
+
+/********************************************************************
+ *  DESC
+ *
+ *  ROUTINE NAME:	_MathError
+ *
+ *  DESCRIPTION:	PIC24E math fail exception interrupt handler
+ *
+ *  INPUT:			none
+ *
+ *  OUTPUT:			does not return
+ *
+ *******************************************************************/
+
+void
+__attribute__((interrupt, no_auto_psv)) _MathError(void)
+{
+    while (1);
+}
 /*
  *  END OF portable.c
  *

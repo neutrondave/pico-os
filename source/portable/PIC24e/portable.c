@@ -133,16 +133,16 @@ void 	SetupTickInterrupt( void );
  *   Module Data
  */
 
-static uint16_t		OneSecPrescaler;
+static uint16_t     OneSecPrescaler;
 extern tcb_entry_t  *CurTask;
 extern k_list_t     k_ready_list, k_wait_list;
 extern tcb_entry_t  TCB[N_TASKS];
-extern timer_t		CurrentTick;
-extern timer_t		LastTick;
+extern timer_t      CurrentTick;
+extern timer_t      LastTick;
 
-#define SYS_FREQ 		CPU_CLOCK_HZ
-#define T1_PRESCALE		8
-#define T1_RELOAD		(SYS_FREQ/T1_PRESCALE/TICK_RATE_HZ)
+#define SYS_FREQ    CPU_CLOCK_HZ
+#define T1_PRESCALE 8
+#define T1_RELOAD   (SYS_FREQ/T1_PRESCALE/TICK_RATE_HZ)
 
 /********************************************************************
  *  DESC
@@ -169,16 +169,16 @@ SetupTickInterrupt( void )
      * turn off timer 1, clear it, set it,
      *	and turn it on...
      */
-    TMR1  		 		= 0;			/* clear the timer register 	*/
-    PR1   		 		= T1_RELOAD;	/* set the prescaler			*/
-    T1CON				= 0;			/* reset the timer control reg	*/
-    T1CONbits.TCKPS0	= 1;			/* div by 8						*/
-    T1CONbits.TCKPS1	= 0;			/* "							*/
-    IPC0bits.T1IP		= 4;			/* priority level				*/
-    IFS0bits.T1IF		= 0;			/* clear the interrupt flag		*/
-    IEC0bits.T1IE		= 1;			/* enable the timer interrupt	*/
-    SRbits.IPL	 		= 3;			/* cpu priority levels 4-7		*/
-    T1CONbits.TON		= 1;			/* start the timer				*/
+    TMR1  		= 0;			/* clear the timer register 	*/
+    PR1   		= T1_RELOAD;            /* set the prescaler		*/
+    T1CON		= 0;			/* reset the timer control reg	*/
+    T1CONbits.TCKPS0	= 1;			/* div by 8			*/
+    T1CONbits.TCKPS1	= 0;			/* "				*/
+    IPC0bits.T1IP	= 4;			/* priority level		*/
+    IFS0bits.T1IF	= 0;			/* clear the interrupt flag	*/
+    IEC0bits.T1IE	= 1;			/* enable the timer interrupt	*/
+    SRbits.IPL	 	= 3;			/* cpu priority levels 4-7	*/
+    T1CONbits.TON	= 1;			/* start the timer		*/
 }
 
 /********************************************************************
@@ -188,9 +188,9 @@ SetupTickInterrupt( void )
  *
  *  DESCRIPTION:	OS_Delay in units of 1uS
  *
- *  INPUT:			Delay interval
+ *  INPUT:		Delay interval
  *
- *  OUTPUT:			none
+ *  OUTPUT:		none
  *
  *******************************************************************/
 
@@ -212,9 +212,9 @@ OS_DelayUs( uint32_t MicroSecondCounter )
  *
  *  DESCRIPTION:	OS_Delay in units of 1mS
  *
- *  INPUT:			Delay interval
+ *  INPUT:		Delay interval
  *
- *  OUTPUT:			none
+ *  OUTPUT:		none
  *
  *******************************************************************/
 void
@@ -232,12 +232,12 @@ OS_DelayMs( uint16_t ms )
  *  ROUTINE NAME:   _T1Interrupt
  *
  *  DESCRIPTION:    OS timer interrupt. For the PIC24E we chose to use
- *					timer 1. should that change, modify the setup and
+ *                  timer 1. should that change, modify the setup and
  *                  the interrupt vector
  *
- *  INPUT:			none
+ *  INPUT:	none
  *
- *  OUTPUT:			none
+ *  OUTPUT:	none
  *
  *******************************************************************/
 
@@ -264,9 +264,9 @@ __attribute__((interrupt, no_auto_psv)) _T1Interrupt(void)
  *
  *  DESCRIPTION:	PIC24E oscillator fail exception interrupt handler
  *
- *  INPUT:			none
+ *  INPUT:		none
  *
- *  OUTPUT:			does not return
+ *  OUTPUT:		does not return
  *
  *******************************************************************/
 
@@ -283,9 +283,9 @@ __attribute__((interrupt, no_auto_psv)) _OscillatorFail(void)
  *
  *  DESCRIPTION:	PIC24E address fail exception interrupt handler
  *
- *  INPUT:			none
+ *  INPUT:		none
  *
- *  OUTPUT:			does not return
+ *  OUTPUT:		does not return
  *
  *******************************************************************/
 
@@ -302,9 +302,9 @@ __attribute__((interrupt, no_auto_psv)) _AddressError(void)
  *
  *  DESCRIPTION:	PIC24E stack fail exception interrupt handler
  *
- *  INPUT:			none
+ *  INPUT:		none
  *
- *  OUTPUT:			does not return
+ *  OUTPUT:		does not return
  *
  *******************************************************************/
 
@@ -321,9 +321,9 @@ __attribute__((interrupt, no_auto_psv)) _StackError(void)
  *
  *  DESCRIPTION:	PIC24E math fail exception interrupt handler
  *
- *  INPUT:			none
+ *  INPUT:		none
  *
- *  OUTPUT:			does not return
+ *  OUTPUT:		does not return
  *
  *******************************************************************/
 

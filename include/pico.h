@@ -107,13 +107,13 @@
 	#define OS_vars
 	#define register
 
-	typedef unsigned long  timer_t;
-	typedef unsigned short QSIZE_T;
+	typedef uint32_t timer_t;
+	typedef uint16_t QSIZE_T;
 
 	typedef unsigned char  SLINK_T;
 	typedef unsigned long  STACK_T;
 
-	typedef	uint8_t 		   OS_error;
+	typedef	uint8_t OS_error;
 
 	typedef struct link
 	{

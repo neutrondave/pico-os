@@ -114,15 +114,17 @@
 #endif
 
 #ifdef	CORTEXM3
-/*
- * Set basepri to MAX_INT_PRIO without effecting other
- * registers.  r0 is clobbered.
- */
-#define DI()	IntMasterDisable()
-#define EI()	IntMasterEnable()
-#define ClrWdt()
+	#ifdef USE_ASF
+	/*
+		 * Set basepri to MAX_INT_PRIO without effecting other
+		 * registers.  r0 is clobbered.
+		 */
+		#define DI()	IntMasterDisable()
+		#define EI()	IntMasterEnable()
+		#define ClrWdt()
+	#else
+	#endif
 #endif
-
 #define ENTER_CRITICAL()		DI()
 #define EXIT_CRITICAL()			EI()
 #define portNOP()
