@@ -98,7 +98,6 @@
 #include	"pico.h"
 #include	"picosem.h"
 #include	"picomsg.h"
-#include        <stdint.h>
 
 #ifdef USES_UIP
 #include 	"uip.h"
