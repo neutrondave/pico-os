@@ -64,73 +64,71 @@
  *******************************************************************/
 
 #ifndef	PORTABLE_H
-#define	PORTABLE_H
-#ifdef PORTABLE_C
-#define _SCOPE_ /**/
-#else
-#define _SCOPE_ extern
-#endif
-
-#if defined(PIC32MX)
-#include 	<GenericTypeDefs.h>
-#include    "HardwareProfile.h"
-#elif defined(PIC24E)
-//#include 	<GenericTypeDefs.h>
-//#include    "HardwareProfile.h"
-#elif defined(DSPIC30)
-//#include 	<GenericTypeDefs.h>
-//#include    "HardwareProfile.h"
-#elif defined(CORTEXM3)
-//#include	"hw_types.h"
-//#include	"cortex_m3.h"
-//#include	"interrupt.h"
-#else
-#error Unknown processor or compiler.
-#endif
-
-/*
- ********************************************************************
- *
- *   type / data definitions
- */
-
-/*
- ********************************************************************
- *
- *   routines exposed by this module
- */
-
-#undef _SCOPE_
-
-/*
- *********************************************************
- *
- * 	Critical section management.
- */
-
-#ifdef	PIC32MX
-#define DI()	INTDisableInterrupts()
-#define EI()	INTEnableInterrupts()
-#endif
-
-#ifdef	CORTEXM3
-	#ifdef USE_ASF
-	/*
-		 * Set basepri to MAX_INT_PRIO without effecting other
-		 * registers.  r0 is clobbered.
-		 */
-		#define DI()	IntMasterDisable()
-		#define EI()	IntMasterEnable()
-		#define ClrWdt()
+	#define	PORTABLE_H
+	#ifdef PORTABLE_C
+		#define _SCOPE_ /**/
 	#else
+		#define _SCOPE_ extern
 	#endif
-#endif
-#define ENTER_CRITICAL()		DI()
-#define EXIT_CRITICAL()			EI()
-#define portNOP()
 
+	#if defined(PIC32MX)
+		#include 	<GenericTypeDefs.h>
+		#include    "HardwareProfile.h"
+	#elif defined(PIC24E)
+		//#include 	<GenericTypeDefs.h>
+		//#include    "HardwareProfile.h"
+	#elif defined(DSPIC30)
+		//#include 	<GenericTypeDefs.h>
+		//#include    "HardwareProfile.h"
+	#elif defined(CORTEXM3)
+		//#include	"hw_types.h"
+		//#include	"cortex_m3.h"
+		//#include	"interrupt.h"
+	#else
+		#error Unknown processor or compiler.
+	#endif
+
+	/*
+	 ********************************************************************
+	 *
+	 *   type / data definitions
+	 */
+
+	/*
+	 ********************************************************************
+	 *
+	 *   routines exposed by this module
+	 */
+
+	#undef _SCOPE_
+
+	/*
+	 *********************************************************
+	 *
+	 * 	Critical section management.
+	 */
+
+	#ifdef	PIC32MX
+		#define DI()	INTDisableInterrupts()
+		#define EI()	INTEnableInterrupts()
+	#endif
+
+	#ifdef	CORTEXM3
+		#ifdef USE_ASF
+		/*
+			 * Set basepri to MAX_INT_PRIO without effecting other
+			 * registers.  r0 is clobbered.
+			 */
+			#define DI()	IntMasterDisable()
+			#define EI()	IntMasterEnable()
+		#else
+		#endif
+		#define ClrWdt()
+	#endif
+	#define ENTER_CRITICAL()		DI()
+	#define EXIT_CRITICAL()			EI()
+	#define portNOP()
 #endif /* safety check for duplicate .h file */
-
 /*
  *  END OF portable.h
  *

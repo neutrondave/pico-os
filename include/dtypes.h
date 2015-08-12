@@ -70,10 +70,13 @@
         #include <stdint.h>
         #include "compiler.h"
 	/*
-	 * data scope
+	 * data scope - 08/12/15; no longer used
+	 *	but preserved for legacy applications
 	 */
+	#define	PUBLIC 
+	#define LOCAL	static
 	#define	PRIVATE static
-	#define	extern  extern
+	#define	EXTERN  extern
 
 	/*
 	 * check if we're using pico
@@ -93,8 +96,10 @@
 		typedef signed   char 	CHAR;
 		typedef signed 	 char  	S_CHAR;
 		typedef signed   char 	INT8S;
+                typedef signed   char   S_BYTE;
 		typedef unsigned char	UCHAR;
 		typedef unsigned char	INT8U;
+                typedef unsigned char   BYTE;
 
 		/*
 		 * These types are assumed as 16-bit integer
@@ -103,6 +108,7 @@
 		typedef signed   short 	S_WORD;
 		typedef signed   short 	INT16S;
 		typedef unsigned short	INT16U;
+                typedef unsigned short  WORD;
 
 		/*
 		 * These types are assumed as 32-bit integer
@@ -111,6 +117,7 @@
 		typedef signed 	 long	S_LONG;
 		typedef signed 	 long	INT32S;
 		typedef unsigned long	INT32U;
+                typedef unsigned long   DWORD;
 
 		/*
 		 * These types are assumed as 64-bit integer

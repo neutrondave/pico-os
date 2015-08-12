@@ -19,8 +19,9 @@
  *   09-19-12   DS  	Modified for the dsPic
  *   05-07-13   DS  	Add dsPIC, PIC24 support
  *   05-21-13   DS  	break out into platform specific directories
+ *   08-12-15   DS  	support for the Arm Cortex-M
  *
- *  Copyright (c) 2009 - 2013 Dave Sandler
+ *  Copyright (c) 2009 - 2015 Dave Sandler
  *
  *  This file is part of pico.
  *
@@ -73,6 +74,7 @@
  *   System Includes
  */
 #define 	 PORTABLE_C
+#include 	<core_cm3.h>
 #include	"pico.h"
 #include	"portable.h"
 #include    "HardwareProfile.h"
@@ -112,14 +114,10 @@
  *   Prototypes
  */
 
-void 	OS_DelayUs( uint32_t );
-void 	OS_DelayMs( uint16_t );
-void   _T1Interrupt( void );
-void   _OscillatorFail(void);
-void   _AddressError(void);
-void   _StackError(void);
-void   _MathError(void);
-void 	SetupTickInterrupt( void );
+void OS_DelayUs( uint32_t );
+void OS_DelayMs( uint16_t );
+void SysTick_Handler( void );
+void SetupTickInterrupt( void );
 
 /*
  ********************************************************************
@@ -141,8 +139,7 @@ extern timer_t		CurrentTick;
 extern timer_t		LastTick;
 
 #define SYS_FREQ 		CPU_CLOCK_HZ
-#define T1_PRESCALE		8
-#define T1_RELOAD		(SYS_FREQ/T1_PRESCALE/TICK_RATE_HZ)
+#define SYSTICK_RELOAD	(SYS_FREQ/TICK_RATE_HZ)
 
 /********************************************************************
  *  DESC
@@ -160,25 +157,18 @@ extern timer_t		LastTick;
 void
 SetupTickInterrupt( void )
 {
-    /*
+	/*
      * Configure SysTick to
      *	interrupt at the requested rate.
      *			and start it.
      */
-    /*
-     * turn off timer 1, clear it, set it,
-     *	and turn it on...
-     */
-    TMR1  		 		= 0;			/* clear the timer register 	*/
-    PR1   		 		= T1_RELOAD;	/* set the prescaler			*/
-    T1CON				= 0;			/* reset the timer control reg	*/
-    T1CONbits.TCKPS0	= 1;			/* div by 8						*/
-    T1CONbits.TCKPS1	= 0;			/* "							*/
-    IPC0bits.T1IP		= 4;			/* priority level				*/
-    IFS0bits.T1IF		= 0;			/* clear the interrupt flag		*/
-    IEC0bits.T1IE		= 1;			/* enable the timer interrupt	*/
-    SRbits.IPL	 		= 3;			/* cpu priority levels 4-7		*/
-    T1CONbits.TON		= 1;			/* start the timer				*/
+		if (SysTick_Config(SYSTICK_RELOAD))
+		{
+			/*
+			 * fail! system tick not configured!
+			 */
+			while(1);
+		}
 }
 
 /********************************************************************
@@ -229,11 +219,10 @@ OS_DelayMs( uint16_t ms )
 /********************************************************************
  *  DESC
  *
- *  ROUTINE NAME:   _T1Interrupt
+ *  ROUTINE NAME:   SysTickHandler
  *
- *  DESCRIPTION:    OS timer interrupt. For the PIC24E we chose to use
- *					timer 1. should that change, modify the setup and
- *                  the interrupt vector
+ *  DESCRIPTION:    OS timer interrupt. For the Arm Cortex M we chose 
+ *					to use the system tick interrupt.
  *
  *  INPUT:			none
  *
@@ -242,7 +231,7 @@ OS_DelayMs( uint16_t ms )
  *******************************************************************/
 
 void
-__attribute__((interrupt, no_auto_psv)) _T1Interrupt(void)
+SysTick_Handler(void)
 {
     /*
      * clear the interrupt flag
@@ -255,82 +244,6 @@ __attribute__((interrupt, no_auto_psv)) _T1Interrupt(void)
         OneSecPrescaler = SYSTICKHZ;
         OSTickSeconds++;
     }
-}
-
-/********************************************************************
- *  DESC
- *
- *  ROUTINE NAME:	_OscillatorFail
- *
- *  DESCRIPTION:	PIC24E oscillator fail exception interrupt handler
- *
- *  INPUT:			none
- *
- *  OUTPUT:			does not return
- *
- *******************************************************************/
-
-void
-__attribute__((interrupt, no_auto_psv)) _OscillatorFail(void)
-{
-    while (1);
-}
-
-/********************************************************************
- *  DESC
- *
- *  ROUTINE NAME:	_AddressError
- *
- *  DESCRIPTION:	PIC24E address fail exception interrupt handler
- *
- *  INPUT:			none
- *
- *  OUTPUT:			does not return
- *
- *******************************************************************/
-
-void
-__attribute__((interrupt, no_auto_psv)) _AddressError(void)
-{
-    while (1);
-}
-
-/********************************************************************
- *  DESC
- *
- *  ROUTINE NAME:	_StackError
- *
- *  DESCRIPTION:	PIC24E stack fail exception interrupt handler
- *
- *  INPUT:			none
- *
- *  OUTPUT:			does not return
- *
- *******************************************************************/
-
-void
-__attribute__((interrupt, no_auto_psv)) _StackError(void)
-{
-    while (1);
-}
-
-/********************************************************************
- *  DESC
- *
- *  ROUTINE NAME:	_MathError
- *
- *  DESCRIPTION:	PIC24E math fail exception interrupt handler
- *
- *  INPUT:			none
- *
- *  OUTPUT:			does not return
- *
- *******************************************************************/
-
-void
-__attribute__((interrupt, no_auto_psv)) _MathError(void)
-{
-    while (1);
 }
 /*
  *  END OF portable.c

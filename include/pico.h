@@ -236,8 +236,8 @@
 	_SCOPE_ void	    OS_Init( void );
 	_SCOPE_ void 	    ServiceOSTimers( void );
 	_SCOPE_ void        OS_TimerHook( void );
-	_SCOPE_ void        OS_DelayUs( uint32_t );
 	_SCOPE_ void        OS_DelayMs( uint16_t );
+	_SCOPE_ void        OS_DelayUs( uint32_t );
 	_SCOPE_ void        OS_TickDelay( uint16_t );
 	_SCOPE_ void 	    KQ_qinsert( k_list_t *, k_list_t * );
 	_SCOPE_ k_list_t   *KQ_qdelete( k_list_t * );
