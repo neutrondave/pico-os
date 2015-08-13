@@ -114,20 +114,43 @@
 	#endif
 
 	#ifdef	CORTEXM3
-		#ifdef USE_ASF
 		/*
-			 * Set basepri to MAX_INT_PRIO without effecting other
-			 * registers.  r0 is clobbered.
-			 */
-			#define DI()	IntMasterDisable()
-			#define EI()	IntMasterEnable()
-		#else
-		#endif
+		 * Set basepri to MAX_SYSCALL_INTERRUPT_PRIORITY without effecting other
+		 * registers.  r0 is clobbered.
+		 */
+		#define SET_INTERRUPT_MASK()	\
+			__asm volatile                  \
+			(								\
+				" mov r0, %0         \n"	\
+				" msr basepri, r0    \n"	\
+				::"i"(configMAX_SYSCALL_INTERRUPT_PRIORITY):"r0"  \
+			)
+		/*
+		 * Set basepri back to 0 without effective other registers.
+		 * r0 is clobbered.
+		 */
+		#define CLEAR_INTERRUPT_MASK()		\
+			__asm volatile                  \
+			(								\
+				" mov r0, #0          \n"	\
+				" msr basepri, r0     \n"	\
+				:::"r0"						\
+			)
+
+		#define SET_INTERRUPT_MASK_FROM_ISR()     0;SET_INTERRUPT_MASK()
+		#define CLEAR_INTERRUPT_MASK_FROM_ISR(x)  CLEAR_INTERRUPT_MASK();(void)x
+		#define DI()	SET_INTERRUPT_MASK()
+		#define EI()	CLEAR_INTERRUPT_MASK()
 		#define ClrWdt()
 	#endif
 	#define ENTER_CRITICAL()		DI()
 	#define EXIT_CRITICAL()			EI()
 	#define portNOP()
+	#ifdef PORTABLE_C
+		void SetupTickInterrupt(void);
+	#else
+		extern void SetupTickInterrupt(void);
+	#endif
 #endif /* safety check for duplicate .h file */
 /*
  *  END OF portable.h

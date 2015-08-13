@@ -106,10 +106,9 @@
 	#define register
 
 	typedef uint32_t timer_t;
-	typedef uint16_t QSIZE_T;
 
-	typedef uint8_t  SLINK_T;
-	typedef uint32_t STACK_T;
+	typedef uint8_t  s_link_t;
+	typedef uint32_t stack_t;
 
 	typedef	uint8_t OS_error;
 
@@ -126,13 +125,13 @@
 
 	typedef struct
 	{
-	    SLINK_T	head;
-	    SLINK_T	tail;
+	    s_link_t	head;
+	    s_link_t	tail;
 	} K_QUEUE;
 
 	#define Q_NULL  (k_list_t *)0
 	#define SL_NULL (k_slist_t *)0
-	#define sl_NULL (SLINK_T)-1;
+	#define sl_NULL (s_link_t)-1;
 
 	typedef struct pt tcb_pt_t;
 
