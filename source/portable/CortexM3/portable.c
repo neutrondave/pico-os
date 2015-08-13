@@ -74,72 +74,59 @@
  *   System Includes
  */
 #define 	 PORTABLE_C
-#include 	<core_cm3.h>
 #include	"pico.h"
 #include	"portable.h"
-#include    "HardwareProfile.h"
+//#include    "HardwareProfile.h"
 /*
  ********************************************************************
  *
  *   Common Includes
  */
-
 /*
  ********************************************************************
  *
  *   Board Specific Includes
  */
-
 /*
  ********************************************************************
  *
  *   Constants
  */
-
 /*
  ********************************************************************
  *
  *   Program Globals
  */
-
 /*
  ********************************************************************
  *
  *   Module Globals
  */
-
 /*
  ********************************************************************
  *
  *   Prototypes
  */
-
-void OS_DelayUs( uint32_t );
-void OS_DelayMs( uint16_t );
-void SysTick_Handler( void );
-void SetupTickInterrupt( void );
-
+void SysTick_Handler(void);
 /*
  ********************************************************************
  *
  *   External Procedures
  */
-
 /*
  ********************************************************************
  *
  *   Module Data
  */
-
 static uint16_t		OneSecPrescaler;
-extern tcb_entry_t  *CurTask;
-extern k_list_t     k_ready_list, k_wait_list;
-extern tcb_entry_t  TCB[N_TASKS];
-extern timer_t		CurrentTick;
-extern timer_t		LastTick;
 
-#define SYS_FREQ 		CPU_CLOCK_HZ
-#define SYSTICK_RELOAD	(SYS_FREQ/TICK_RATE_HZ)
+#define SYSTICK_RELOAD		(CPU_CLOCK_HZ/SYSTICKHZ)
+#define NVIC_SYSTICK_CTRL   ((volatile unsigned long *) 0xe000e010)
+#define NVIC_SYSTICK_LOAD   ((volatile unsigned long *) 0xe000e014)
+#define NVIC_SYSTICK_VAL	((volatile unsigned long *) 0xe000e014)
+#define NVIC_SYSTICK_CLK    0x00000004
+#define NVIC_SYSTICK_INT    0x00000002
+#define NVIC_SYSTICK_ENABLE 0x00000001
 
 /********************************************************************
  *  DESC
@@ -162,13 +149,8 @@ SetupTickInterrupt( void )
      *	interrupt at the requested rate.
      *			and start it.
      */
-		if (SysTick_Config(SYSTICK_RELOAD))
-		{
-			/*
-			 * fail! system tick not configured!
-			 */
-			while(1);
-		}
+	*(NVIC_SYSTICK_LOAD) = (CPU_CLOCK_HZ / SYSTICKHZ) - 1UL;
+	*(NVIC_SYSTICK_CTRL) = NVIC_SYSTICK_CLK | NVIC_SYSTICK_INT | NVIC_SYSTICK_ENABLE;
 }
 
 /********************************************************************
@@ -187,12 +169,11 @@ SetupTickInterrupt( void )
 void
 OS_DelayUs( uint32_t MicroSecondCounter )
 {
-    uint32_t i;
-    for (i = 0; i < MicroSecondCounter; i++)
+    do 
     {
-        __asm__ volatile ("repeat #25");
-        __asm__ volatile ("nop");
-    }
+	    uint32_t i = 25;
+		do{;} while(--i);
+    } while (--MicroSecondCounter);
 }
 
 /********************************************************************
@@ -210,10 +191,8 @@ OS_DelayUs( uint32_t MicroSecondCounter )
 void
 OS_DelayMs( uint16_t ms )
 {
-    while (ms--)
-    {
-        OS_DelayUs(1000);
-    }
+	uint32_t this_tick = CurrentTick + ms;
+    while (CurrentTick < this_tick) ClrWdt();
 }
 
 /********************************************************************
@@ -237,7 +216,6 @@ SysTick_Handler(void)
      * clear the interrupt flag
      *	and handle the event
      */
-    IFS0bits.T1IF	= 0;
     OS_TimerHook();
     if (0 == --OneSecPrescaler)
     {
