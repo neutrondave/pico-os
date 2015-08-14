@@ -76,6 +76,7 @@
 #define 	 PORTABLE_C
 #include	"pico.h"
 #include	"portable.h"
+#include	"sam/cycle_counter.h"
 //#include    "HardwareProfile.h"
 /*
  ********************************************************************
@@ -167,13 +168,9 @@ SetupTickInterrupt( void )
  *******************************************************************/
 
 void
-OS_DelayUs( uint32_t MicroSecondCounter )
+OS_DelayUs( uint32_t us )
 {
-    do 
-    {
-	    uint32_t i = 25;
-		do{;} while(--i);
-    } while (--MicroSecondCounter);
+	cpu_delay_us(us, CPU_CLOCK_HZ);
 }
 
 /********************************************************************
@@ -191,8 +188,7 @@ OS_DelayUs( uint32_t MicroSecondCounter )
 void
 OS_DelayMs( uint16_t ms )
 {
-	uint32_t this_tick = CurrentTick + ms;
-    while (CurrentTick < this_tick) ClrWdt();
+	cpu_delay_ms(ms, CPU_CLOCK_HZ);
 }
 
 /********************************************************************
