@@ -141,9 +141,6 @@
 		#ifndef NULL
 			#define	NULL (void *)0
 		#endif
-
-		#define	TRUE			1
-		#define	FALSE			0
 	#endif
 	typedef uint16_t USHORT;
 	typedef uint32_t ULONG;
@@ -162,17 +159,16 @@
 	    uint8_t	Minute;
 	} CLOCK_TIME;
 
-	#define LOW(x)  (uint8_t) (x & 0xFF)
-	#define HIGH(x) (uint8_t)((x >> 8) & 0xFF)
+	#define TRUE 		1
+	#define FALSE 		0
+	#define LO_BYTE(x)  (uint8_t) (x & 0xFF)
+	#define HI_BYTE(x)  (uint8_t)((x >> 8) & 0xFF)
 
 	#ifdef PIC32MX
 		#define NVM_ALLOCATE(_SCOPE_, name, align, bytes) \
 		    _SCOPE_ ROM uint8_t __attribute__ ((aligned(align))) name[(bytes)] = \
 		            {[0 ...(bytes)-1] = 0xFF}
 	#endif
-
-	#define PASS       		TRUE
-	#define FAIL       		FALSE
 
 	#ifndef MAX
 		#define MAX(a,b)	(a >= b) ? a : b

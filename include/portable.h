@@ -84,6 +84,7 @@
 		//#include	"hw_types.h"
 		//#include	"cortex_m3.h"
 		//#include	"interrupt.h"
+	#elif defined(CORTEXM0)
 	#else
 		#error Unknown processor or compiler.
 	#endif
