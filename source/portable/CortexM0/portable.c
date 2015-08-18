@@ -76,7 +76,6 @@
 #define 	 PORTABLE_C
 #include	"pico.h"
 #include	"portable.h"
-#include	"sam/cycle_counter.h"
 //#include    "HardwareProfile.h"
 /*
  ********************************************************************
@@ -124,10 +123,11 @@ static uint16_t		OneSecPrescaler;
 #define SYSTICK_RELOAD		(CPU_CLOCK_HZ/SYSTICKHZ)
 #define NVIC_SYSTICK_CTRL   ((volatile unsigned long *) 0xe000e010)
 #define NVIC_SYSTICK_LOAD   ((volatile unsigned long *) 0xe000e014)
-#define NVIC_SYSTICK_VAL	((volatile unsigned long *) 0xe000e014)
+#define NVIC_SYSTICK_VAL	((volatile unsigned long *) 0xe000e018)
 #define NVIC_SYSTICK_CLK    0x00000004
 #define NVIC_SYSTICK_INT    0x00000002
 #define NVIC_SYSTICK_ENABLE 0x00000001
+#define cpu_us_2_cy(us)		(uint32_t)(us * (CPU_CLOCK_HZ/1000000))
 
 /********************************************************************
  *  DESC
@@ -170,7 +170,13 @@ SetupTickInterrupt( void )
 void
 OS_DelayUs( uint32_t us )
 {
-	cpu_delay_us(us, CPU_CLOCK_HZ);
+	uint32_t microseconds = *(NVIC_SYSTICK_VAL) + (cpu_us_2_cy(us) % 1000);
+	while (*(NVIC_SYSTICK_VAL) < microseconds);
+	if (us > 1000)
+	{
+		uint32_t milliseconds = us / 1000;
+		OS_DelayMs((uint16_t) milliseconds);
+	}
 }
 
 /********************************************************************
@@ -188,7 +194,7 @@ OS_DelayUs( uint32_t us )
 void
 OS_DelayMs( uint16_t ms )
 {
-	cpu_delay_ms(ms, CPU_CLOCK_HZ);
+	OS_TickDelay(ms);
 }
 
 /********************************************************************
