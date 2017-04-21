@@ -15,7 +15,7 @@
  *  --------    ----    ----------------------
  *   06-20-09   DS  	Module creation.
  *   09-30-10   DS  	Modified for the PIC32MX.
- *   09-06-12   DS  	don't clear OSTickSeconds on reset
+ *   09-06-12   DS  	don't clear os_seconds on reset
  *   09-19-12   DS  	Modified for the dsPic
  *   05-07-13   DS  	Add dsPIC, PIC24 support
  *   05-21-13   DS  	break out into platform specific directories
@@ -118,7 +118,7 @@ void SysTick_Handler(void);
  *
  *   Module Data
  */
-static uint16_t		OneSecPrescaler;
+static uint16_t		one_sec_prescale;
 
 #define SYSTICK_RELOAD		(CPU_CLOCK_HZ/SYSTICKHZ)
 #define NVIC_SYSTICK_CTRL   ((volatile unsigned long *) 0xe000e010)
@@ -143,7 +143,7 @@ static uint16_t		OneSecPrescaler;
  *******************************************************************/
 
 void
-SetupTickInterrupt( void )
+os_tick_init( void )
 {
 	/*
      * Configure SysTick to
@@ -157,9 +157,9 @@ SetupTickInterrupt( void )
 /********************************************************************
  *  DESC
  *
- *  ROUTINE NAME:	OS_DelayUs
+ *  ROUTINE NAME:	os_delay_us
  *
- *  DESCRIPTION:	OS_Delay in units of 1uS
+ *  DESCRIPTION:	os_delay in units of 1uS
  *
  *  INPUT:			Delay interval
  *
@@ -168,23 +168,23 @@ SetupTickInterrupt( void )
  *******************************************************************/
 
 void
-OS_DelayUs( uint32_t us )
+os_delay_us( uint32_t us )
 {
 	uint32_t microseconds = *(NVIC_SYSTICK_VAL) + (cpu_us_2_cy(us) % 1000);
 	while (*(NVIC_SYSTICK_VAL) < microseconds);
 	if (us > 1000)
 	{
 		uint32_t milliseconds = us / 1000;
-		OS_DelayMs((uint16_t) milliseconds);
+		os_delay_ms((uint16_t) milliseconds);
 	}
 }
 
 /********************************************************************
  *  DESC
  *
- *  ROUTINE NAME:	OS_DelayMs
+ *  ROUTINE NAME:	os_delay_ms
  *
- *  DESCRIPTION:	OS_Delay in units of 1mS
+ *  DESCRIPTION:	os_delay in units of 1mS
  *
  *  INPUT:			Delay interval
  *
@@ -192,9 +192,9 @@ OS_DelayUs( uint32_t us )
  *
  *******************************************************************/
 void
-OS_DelayMs( uint16_t ms )
+os_delay_ms( uint16_t ms )
 {
-	OS_TickDelay(ms);
+	os_tick_delay(ms);
 }
 
 /********************************************************************
@@ -218,11 +218,11 @@ SysTick_Handler(void)
      * clear the interrupt flag
      *	and handle the event
      */
-    OS_TimerHook();
-    if (0 == --OneSecPrescaler)
+    os_timerHook();
+    if (0 == --one_sec_prescale)
     {
-        OneSecPrescaler = SYSTICKHZ;
-        OSTickSeconds++;
+        one_sec_prescale = SYSTICKHZ;
+        os_seconds++;
     }
 }
 /*

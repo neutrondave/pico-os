@@ -17,7 +17,7 @@
  *   09-28-12   DS  	OS_MsgReceive move to picomsg.h in order to
  *						use proto-threads
  *
- *  Copyright (c) 2009 - 2013 Dave Sandler
+ *  Copyright (c) 2009 - 2016 Dave Sandler
  *
  *  This file is part of pico.
  *
@@ -72,39 +72,39 @@
 /*
  *********************************************************
  *
- * void OS_MBoxInit(  os_mail_t *MBox  )
+ * void os_mbox_init(  os_mail_t *MBox  )
  *	initialize a Mailbox
  */
 void
-OS_MBoxInit( os_mail_t *MBox )
+os_mbox_init( os_mail_t *MBox )
 {
-    OS_SemInit( &MBox->MBoxSem );
-    MBox->MsgQueue.next = MBox->MsgQueue.last = (k_list_t *)MBox;
+    os_sem_init( &MBox->mbox_sem );
+    MBox->msg_queue.next = MBox->msg_queue.last = (k_list_t *)MBox;
 }
 
 /*
  *********************************************************
  *
- * void OS_MsgInit(  os_msg_t *Msg  )
+ * void os_msg_init(  os_msg_t *Msg  )
  *	initialize pointers in a message record
  */
 void
-OS_MsgInit( os_msg_t *Msg )
+os_msg_init( os_msg_t *Msg )
 {
-    Msg->MsgList.next = Msg->MsgList.last = (k_list_t *)Msg;
+    Msg->msg_list.next = Msg->msg_list.last = (k_list_t *)Msg;
 }
 
 /*
  *********************************************************
  *
- * void OS_MsgSend(  os_msg_t *Msg, os_mail_t *MBox, os_mail_t *reply  )
+ * void os_msg_send(  os_msg_t *Msg, os_mail_t *MBox, os_mail_t *reply  )
  *	send a message
  */
 void
-OS_MsgSend( os_msg_t *Msg, os_mail_t *MBox )
+os_msg_send( os_msg_t *Msg, os_mail_t *MBox )
 {
-    KQ_qinsert( (k_list_t *)MBox, (k_list_t *)Msg );
-    OS_SemSignal( &MBox->MBoxSem );
+    kq_qinsert( (k_list_t *)MBox, (k_list_t *)Msg );
+    os_sem_signal( &MBox->mbox_sem );
 }
 
 /*

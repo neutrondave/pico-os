@@ -15,12 +15,12 @@
  *  --------    ----    ----------------------
  *   06-20-09   DS  	Module creation.
  *   09-30-10   DS  	Modified for the PIC32MX.
- *   09-06-12   DS  	don't clear OSTickSeconds on reset
+ *   09-06-12   DS  	don't clear os_seconds on reset
  *   09-19-12   DS  	Modified for the dsPic
  *   05-07-13   DS  	Add dsPIC, PIC24 support
  *   05-21-13   DS  	break out into platform specific directories
  *
- *  Copyright (c) 2009 - 2013 Dave Sandler
+ *  Copyright (c) 2009 - 2016 Dave Sandler
  *
  *  This file is part of pico.
  *
@@ -119,7 +119,7 @@ void   _OscillatorFail(void);
 void   _AddressError(void);
 void   _StackError(void);
 void   _MathError(void);
-void 	SetupTickInterrupt( void );
+void 	os_tick_init( void );
 
 /*
  ********************************************************************
@@ -133,12 +133,12 @@ void 	SetupTickInterrupt( void );
  *   Module Data
  */
 
-static uint16_t		OneSecPrescaler;
-extern tcb_entry_t  *CurTask;
+static uint16_t		one_sec_prescale;
+extern tcb_entry_t  *current_task;
 extern k_list_t     k_ready_list, k_wait_list;
-extern tcb_entry_t  TCB[N_TASKS];
-extern timer_t		CurrentTick;
-extern timer_t		LastTick;
+extern tcb_entry_t  tcb[N_TASKS];
+extern timer_t		current_tick;
+extern timer_t		last_tick;
 
 #define SYS_FREQ 				CPU_CLOCK_HZ
 #define T1_PRESCALE		        8
@@ -157,7 +157,7 @@ extern timer_t		LastTick;
  *******************************************************************/
 
 void
-SetupTickInterrupt( void )
+os_tick_init( void )
 {
     /*
      * Configure SysTick to
@@ -203,12 +203,12 @@ __attribute__((interrupt, no_auto_psv)) _T1Interrupt(void)
      *	and handle the event
      */
     IFS0bits.T1IF	= 0;
-    OS_TimerHook();
-    if (0 == --OneSecPrescaler)
-        {
-            OneSecPrescaler = SYSTICKHZ;
-            OSTickSeconds++;
-        }
+    os_timerHook();
+    if (0 == --one_sec_prescale)
+    {
+        one_sec_prescale = SYSTICKHZ;
+        os_seconds++;
+    }
 }
 
 /********************************************************************

@@ -174,10 +174,10 @@ struct pt
  */
 #define PT_WAIT_TO(pt, condition, timeout, rate)\
     do {											\
-            setgpTimer(ME, timeout);					\
+            setgptimer(ME, timeout);					\
             LC_SET((pt)->lc);							\
-            if(!(condition) && !(gpTimerExpired(ME))) {	\
-                    OS_Delay(ME, rate);						\
+            if(!(condition) && !(gp_timer_expired(ME))) {	\
+                    os_delay(ME, rate);						\
                     return PT_WAITING;						\
                 }											\
         } while(0)
@@ -202,7 +202,7 @@ struct pt
  */
 
 
-#define PT_DELAY(pt, delay) 	OS_Delay(ME, delay); PT_WAIT_UNTIL(pt, TaskTimerExpired(ME));
+#define PT_DELAY(pt, delay) 	os_delay(ME, delay); PT_WAIT_UNTIL(pt, task_timer_expired(ME));
 
 /**
  * Block and wait while condition is true.

@@ -13,7 +13,7 @@
  *  DATE    VERSION  INIT   DESCRIPTION OF CHANGE
  *  ------  -------  ----   ----------------------
  *
- *  Copyright (c) 2009 - 2013 Dave Sandler
+ *  Copyright (c) 2009 - 2016 Dave Sandler
  *
  *  This file is part of pico.
  *
@@ -64,7 +64,7 @@
 #define	_K_CONFIG_H
 
 /*
- * TCB related stuff
+ * tcb related stuff
  */
 #define N_TASKS         	8
 

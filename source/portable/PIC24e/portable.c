@@ -15,12 +15,12 @@
  *  --------    ----    ----------------------
  *   06-20-09   DS  	Module creation.
  *   09-30-10   DS  	Modified for the PIC32MX.
- *   09-06-12   DS  	don't clear OSTickSeconds on reset
+ *   09-06-12   DS  	don't clear os_seconds on reset
  *   09-19-12   DS  	Modified for the dsPic
  *   05-07-13   DS  	Add dsPIC, PIC24 support
  *   05-21-13   DS  	break out into platform specific directories
  *
- *  Copyright (c) 2009 - 2013 Dave Sandler
+ *  Copyright (c) 2009 - 2016 Dave Sandler
  *
  *  This file is part of pico.
  *
@@ -112,14 +112,14 @@
  *   Prototypes
  */
 
-void 	OS_DelayUs( uint32_t );
-void 	OS_DelayMs( uint16_t );
+void 	os_delay_us( uint32_t );
+void 	os_delay_ms( uint16_t );
 void   _T1Interrupt( void );
 void   _OscillatorFail(void);
 void   _AddressError(void);
 void   _StackError(void);
 void   _MathError(void);
-void 	SetupTickInterrupt( void );
+void 	os_tick_init( void );
 
 /*
  ********************************************************************
@@ -133,12 +133,12 @@ void 	SetupTickInterrupt( void );
  *   Module Data
  */
 
-static uint16_t     OneSecPrescaler;
-extern tcb_entry_t  *CurTask;
+static uint16_t     one_sec_prescale;
+extern tcb_entry_t  *current_task;
 extern k_list_t     k_ready_list, k_wait_list;
-extern tcb_entry_t  TCB[N_TASKS];
-extern timer_t      CurrentTick;
-extern timer_t      LastTick;
+extern tcb_entry_t  tcb[N_TASKS];
+extern timer_t      current_tick;
+extern timer_t      last_tick;
 
 #define SYS_FREQ    CPU_CLOCK_HZ
 #define T1_PRESCALE 8
@@ -158,7 +158,7 @@ extern timer_t      LastTick;
  *******************************************************************/
 
 void
-SetupTickInterrupt( void )
+os_tick_init( void )
 {
     /*
      * Configure SysTick to
@@ -184,9 +184,9 @@ SetupTickInterrupt( void )
 /********************************************************************
  *  DESC
  *
- *  ROUTINE NAME:	OS_DelayUs
+ *  ROUTINE NAME:	os_delay_us
  *
- *  DESCRIPTION:	OS_Delay in units of 1uS
+ *  DESCRIPTION:	os_delay in units of 1uS
  *
  *  INPUT:		Delay interval
  *
@@ -195,7 +195,7 @@ SetupTickInterrupt( void )
  *******************************************************************/
 
 void
-OS_DelayUs( uint32_t MicroSecondCounter )
+os_delay_us( uint32_t MicroSecondCounter )
 {
     uint32_t i;
     for (i = 0; i < MicroSecondCounter; i++)
@@ -208,9 +208,9 @@ OS_DelayUs( uint32_t MicroSecondCounter )
 /********************************************************************
  *  DESC
  *
- *  ROUTINE NAME:	OS_DelayMs
+ *  ROUTINE NAME:	os_delay_ms
  *
- *  DESCRIPTION:	OS_Delay in units of 1mS
+ *  DESCRIPTION:	os_delay in units of 1mS
  *
  *  INPUT:		Delay interval
  *
@@ -218,11 +218,11 @@ OS_DelayUs( uint32_t MicroSecondCounter )
  *
  *******************************************************************/
 void
-OS_DelayMs( uint16_t ms )
+os_delay_ms( uint16_t ms )
 {
     while (ms--)
     {
-        OS_DelayUs(1000);
+        os_delay_us(1000);
     }
 }
 
@@ -249,11 +249,11 @@ __attribute__((interrupt, no_auto_psv)) _T1Interrupt(void)
      *	and handle the event
      */
     IFS0bits.T1IF	= 0;
-    OS_TimerHook();
-    if (0 == --OneSecPrescaler)
+    os_timerHook();
+    if (0 == --one_sec_prescale)
     {
-        OneSecPrescaler = SYSTICKHZ;
-        OSTickSeconds++;
+        one_sec_prescale = SYSTICKHZ;
+        os_seconds++;
     }
 }
 

@@ -16,7 +16,7 @@
  * 9-30-10			 DS	    Modify for the PIC32MX and Microchip libs
  * 9-19-12			 DS	    expand core selection switches
  *
- *  Copyright (c) 2009 - 2013 Dave Sandler
+ *  Copyright (c) 2009 - 2016 Dave Sandler
  *
  *  This file is part of pico.
  *
@@ -148,9 +148,9 @@
 	#define EXIT_CRITICAL()			EI()
 	#define portNOP()
 	#ifdef PORTABLE_C
-		void SetupTickInterrupt(void);
+		void os_tick_init(void);
 	#else
-		extern void SetupTickInterrupt(void);
+		extern void os_tick_init(void);
 	#endif
 
 	#ifdef	CORTEXM3
@@ -187,9 +187,9 @@
 	#define EXIT_CRITICAL()			EI()
 	#define portNOP()
 	#ifdef PORTABLE_C
-		void SetupTickInterrupt(void);
+		void os_tick_init(void);
 	#else
-		extern void SetupTickInterrupt(void);
+		extern void os_tick_init(void);
 	#endif
 #endif /* safety check for duplicate .h file */
 /*

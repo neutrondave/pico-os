@@ -17,7 +17,7 @@
  *   09-24-12   DS  	clean up. was never used.
  *   05-21-13   DS  	greatly simplified...
  *
- *  Copyright (c) 2009 - 2013 Dave Sandler
+ *  Copyright (c) 2009 - 2016 Dave Sandler
  *
  *  This file is part of pico.
  *
@@ -125,7 +125,7 @@
 /*
  *********************************************************
  *
- *! OS_QueInit( os_queue_t *, size, BUFFER)
+ *! os_que_init( os_queue_t *, size, BUFFER)
  *!
  *! \param 		none.
  *!
@@ -134,7 +134,7 @@
  *! \return 	none.
  */
 void
-OS_QueInit(os_queue_t *q, q_size_t qsize, uint8_t *buffer)
+os_que_init(os_queue_t *q, q_size_t qsize, uint8_t *buffer)
 {
     q->qsize        = qsize;
     q->inptr        = 0;
@@ -145,7 +145,7 @@ OS_QueInit(os_queue_t *q, q_size_t qsize, uint8_t *buffer)
 /*
  *********************************************************
  *
- *! OS_QueAdd( os_queue_t *, q_type_t * )
+ *! os_que_add( os_queue_t *, q_type_t * )
  *!
  *! \param 		none.
  *!
@@ -154,9 +154,9 @@ OS_QueInit(os_queue_t *q, q_size_t qsize, uint8_t *buffer)
  *! \return 	status.
  */
 uint8_t
-OS_QueAdd(os_queue_t *q, q_type_t *item)
+os_que_add(os_queue_t *q, q_type_t *item)
 {
-    if(!OS_QueFull(q))
+    if(!os_que_full(q))
     {
         q->buff[q->inptr++] = *item;
         if (q->inptr == q->qsize)
@@ -174,7 +174,7 @@ OS_QueAdd(os_queue_t *q, q_type_t *item)
 /*
  *********************************************************
  *
- *! OS_QuePutArray( os_queue_t *, q_type_t *, q_size_t )
+ *! os_que_putarray( os_queue_t *, q_type_t *, q_size_t )
  *!
  *! \param 		none.
  *!
@@ -183,14 +183,14 @@ OS_QueAdd(os_queue_t *q, q_type_t *item)
  *! \return 	number of items inserted
  */
 q_size_t
-OS_QuePutArray(os_queue_t *q, q_type_t *item, q_size_t len)
+os_que_putarray(os_queue_t *q, q_type_t *item, q_size_t len)
 {
     q_size_t putCount;
     
     putCount = 0;
     do
     {
-        if (Q_SUCCESS == OS_QueAdd(q, item))
+        if (Q_SUCCESS == os_que_add(q, item))
         {
             item++;
             putCount++;
@@ -207,7 +207,7 @@ OS_QuePutArray(os_queue_t *q, q_type_t *item, q_size_t len)
 /*
  *********************************************************
  *
- *! OS_QuePutString( os_queue_t *, q_type_t * )
+ *! os_que_putstring( os_queue_t *, q_type_t * )
  *!
  *! \param 		none.
  *!
@@ -216,14 +216,14 @@ OS_QuePutArray(os_queue_t *q, q_type_t *item, q_size_t len)
  *! \return 	number of items inserted
  */
 q_size_t
-OS_QuePutString(os_queue_t *q, q_type_t *item)
+os_que_putstring(os_queue_t *q, q_type_t *item)
 {
     q_size_t putCount;
     
     putCount = 0;
     while (*item)
     {
-        if (Q_SUCCESS == OS_QueAdd(q, item++))
+        if (Q_SUCCESS == os_que_add(q, item++))
         {
             putCount++;
         }
@@ -238,7 +238,7 @@ OS_QuePutString(os_queue_t *q, q_type_t *item)
 /*
  *********************************************************
  *
- *! OS_QueRemove( os_queue_t *, q_type_t *)
+ *! os_que_remove( os_queue_t *, q_type_t *)
  *!
  *! \param 		none.
  *!
@@ -247,9 +247,9 @@ OS_QuePutString(os_queue_t *q, q_type_t *item)
  *! \return 	status.
  */
 uint8_t
-OS_QueRemove(os_queue_t *q, q_type_t *item)
+os_que_remove(os_queue_t *q, q_type_t *item)
 {
-    if(!OS_QueEmpty(q))
+    if(!os_que_empty(q))
     {
         *item = q->buff[q->outptr++];
         if(q->outptr == q->qsize)
@@ -267,7 +267,7 @@ OS_QueRemove(os_queue_t *q, q_type_t *item)
 /*
  *********************************************************
  *
- *! OS_QuePeek( os_queue_t *, q_type_t *)
+ *! os_que_peek( os_queue_t *, q_type_t *)
  *!
  *! \param 		none.
  *!
@@ -276,9 +276,9 @@ OS_QueRemove(os_queue_t *q, q_type_t *item)
  *! \return 	status.
  */
 uint8_t
-OS_QuePeek(os_queue_t *q, q_type_t *item)
+os_que_peek(os_queue_t *q, q_type_t *item)
 {
-    if(!OS_QueEmpty(q))
+    if(!os_que_empty(q))
     {
         *item = q->buff[q->outptr];
         return (Q_SUCCESS);
@@ -292,7 +292,7 @@ OS_QuePeek(os_queue_t *q, q_type_t *item)
 /*
  *********************************************************
  *
- *! OS_QueFlush( os_queue_t *)
+ *! os_que_flush( os_queue_t *)
  *!
  *! \param 		none.
  *!
@@ -301,7 +301,7 @@ OS_QuePeek(os_queue_t *q, q_type_t *item)
  *! \return 	none.
  */
 void
-OS_QueFlush(os_queue_t *q)
+os_que_flush(os_queue_t *q)
 {
     q->inptr  = 0;
     q->outptr = 0;

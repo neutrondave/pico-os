@@ -15,7 +15,7 @@
  *  --------    ----    ----------------------
  *   05-21-13   DS  	Module creation.
  *
- *  Copyright (c) 2013 Dave Sandler
+ *  Copyright (c) 2016 Dave Sandler
  *
  *  This file is part of pico.
  *
@@ -166,7 +166,7 @@
  *  OUTPUT:			result
  *
  *******************************************************************/
- uint8_t 
+uint8_t 
 SerialInit(SerPortInfo *portInfo)
 {
     uint8_t retval;
@@ -284,7 +284,7 @@ SerialInit(SerPortInfo *portInfo)
  *  OUTPUT:			none
  *
  *******************************************************************/
- void 
+void 
 SerialTxStart(uint8_t port)
 {
     switch (port)
@@ -361,7 +361,7 @@ __attribute__((interrupt, no_auto_psv)) _U1RXInterrupt(void)
 	             *  error set on this character
 	             *  read the character
 	             */
-                OS_QuePut(Rx1Que, temp);
+                os_que_put(Rx1Que, temp);
 		    }
 	        else
 	        {	
@@ -403,9 +403,9 @@ __attribute__((interrupt, no_auto_psv)) _U1TXInterrupt(void)
 
     IFS0bits.U1TXIF = 0;
     #ifdef ENABLE_UART1_DRIVER
-        if (!OS_QueEmpty(Tx1Que))
+        if (!os_que_empty(Tx1Que))
         {
-            OS_QueGet(Tx1Que, temp);        
+            os_que_get(Tx1Que, temp);        
             U1TXREG = temp;
         }
         else
@@ -448,7 +448,7 @@ __attribute__((interrupt, no_auto_psv)) _U2RXInterrupt(void)
 	             *  error set on this character
 	             *  read the character
 	             */
-                OS_QuePut(Rx2Que, temp);
+                os_que_put(Rx2Que, temp);
 		    }
 	        else
 	        {	
@@ -490,9 +490,9 @@ __attribute__((interrupt, no_auto_psv)) _U2TXInterrupt(void)
 
     IFS1bits.U2TXIF = 0;
     #ifdef ENABLE_UART2_DRIVER
-        if (!OS_QueEmpty(Tx2Que))
+        if (!os_que_empty(Tx2Que))
         {
-            OS_QueGet(Tx2Que, temp);        
+            os_que_get(Tx2Que, temp);        
             U2TXREG = temp;
         }
         else
@@ -535,7 +535,7 @@ __attribute__((interrupt, no_auto_psv)) _U3RXInterrupt(void)
 	             *  error set on this character
 	             *  read the character
 	             */
-                OS_QuePut(Rx3Que, temp);
+                os_que_put(Rx3Que, temp);
 		    }
 	        else
 	        {	
@@ -577,9 +577,9 @@ __attribute__((interrupt, no_auto_psv)) _U3TXInterrupt(void)
 
     IFS5bits.U3TXIF = 0;
     #ifdef ENABLE_UART3_DRIVER
-        if (!OS_QueEmpty(Tx3Que))
+        if (!os_que_empty(Tx3Que))
         {
-            OS_QueGet(Tx3Que, temp);        
+            os_que_get(Tx3Que, temp);        
             U3TXREG = temp;
         }
         else
@@ -622,7 +622,7 @@ __attribute__((interrupt, no_auto_psv)) _U4RXInterrupt(void)
 	             *  error set on this character
 	             *  read the character
 	             */
-                OS_QuePut(Rx4Que, temp);
+                os_que_put(Rx4Que, temp);
 		    }
 	        else
 	        {	
@@ -664,9 +664,9 @@ __attribute__((interrupt, no_auto_psv)) _U4TXInterrupt(void)
 
     IFS5bits.U4TXIF = 0;
     #ifdef ENABLE_UART4_DRIVER
-        if (!OS_QueEmpty(Tx4Que))
+        if (!os_que_empty(Tx4Que))
         {
-            OS_QueGet(Tx4Que, temp);        
+            os_que_get(Tx4Que, temp);        
             U4TXREG = temp;
         }
         else

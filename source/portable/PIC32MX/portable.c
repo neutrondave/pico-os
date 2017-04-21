@@ -15,12 +15,12 @@
  *  --------    ----    ----------------------
  *   06-20-09   DS  	Module creation.
  *   09-30-10   DS  	Modified for the PIC32MX.
- *   09-06-12   DS  	don't clear OSTickSeconds on reset
+ *   09-06-12   DS  	don't clear os_seconds on reset
  *   09-19-12   DS  	Modified for the dsPic
  *   05-07-13   DS  	Add dsPIC, PIC24 support
  *   05-21-13   DS  	break out into platform specific directories
  *
- *  Copyright (c) 2009 - 2013 Dave Sandler
+ *  Copyright (c) 2009 - 2016 Dave Sandler
  *
  *  This file is part of pico.
  *
@@ -115,12 +115,12 @@
  *   Prototypes
  */
 
-void 	OSTickInt( void );
-void 	OS_DelayUs( uint32_t );
-void 	OS_DelayMs( uint16_t );
-void 	OSTickInt( void );
+void 	os_tick_interrupt( void );
+void 	os_delay_us( uint32_t );
+void 	os_delay_ms( uint16_t );
+void 	os_tick_interrupt( void );
 void   _general_exception_handler(unsigned int, unsigned int);
-void 	SetupTickInterrupt( void );
+void 	os_tick_init( void );
 
 /*
  ********************************************************************
@@ -134,15 +134,15 @@ void 	SetupTickInterrupt( void );
  *   Module Data
  */
 
-static uint16_t		OneSecPrescaler;
-extern tcb_entry_t  *CurTask;
+static uint16_t		one_sec_prescale;
+extern tcb_entry_t  *current_task;
 extern k_list_t     k_ready_list, k_wait_list;
-extern tcb_entry_t  TCB[N_TASKS];
-extern timer_t		CurrentTick;
-extern timer_t		LastTick;
+extern tcb_entry_t  tcb[N_TASKS];
+extern timer_t		current_tick;
+extern timer_t		last_tick;
 
 /*
- * Let compile time pre-processor calculate the Timer 1 tick period
+ * Let compile time pre-processor calculate the timer 1 tick period
  *
  */
 #define SYS_FREQ 				CPU_CLOCK_HZ
@@ -166,7 +166,7 @@ extern timer_t		LastTick;
  *******************************************************************/
 
 void
-SetupTickInterrupt( void )
+os_tick_init( void )
 {
     /*
      * Configure SysTick to
@@ -177,22 +177,22 @@ SetupTickInterrupt( void )
      * Turn ON the system clock
      *
      */
-    OpenTimer2(T2_CONFIG, T2_RELOAD);
-    ConfigIntTimer2(T2_INT_ON | T2_INT_PRIOR_4);
+    Opentimer2(T2_CONFIG, T2_RELOAD);
+    ConfigInttimer2(T2_INT_ON | T2_INT_PRIOR_4);
     /*
      * Turn on the interrupts
      *
      */
     INTEnableSystemMultiVectoredInt();
-    OneSecPrescaler = SYSTICKHZ;
+    one_sec_prescale = SYSTICKHZ;
 }
 
 /********************************************************************
  *  DESC
  *
- *  ROUTINE NAME:	OS_DelayUs
+ *  ROUTINE NAME:	os_delay_us
  *
- *  DESCRIPTION:	OS_Delay in units of 1uS
+ *  DESCRIPTION:	os_delay in units of 1uS
  *
  *  INPUT:			Delay interval
  *
@@ -201,7 +201,7 @@ SetupTickInterrupt( void )
  *******************************************************************/
 
 void
-OS_DelayUs( uint32_t MicroSecondCounter )
+os_delay_us( uint32_t MicroSecondCounter )
 {
     volatile uint32_t cyclesRequiredForEntireDelay;
     if(GetInstructionClock() <= 500000)				 //for all FCY speeds under 500KHz (FOSC <= 1MHz)
@@ -237,9 +237,9 @@ OS_DelayUs( uint32_t MicroSecondCounter )
 /********************************************************************
  *  DESC
  *
- *  ROUTINE NAME:	OS_DelayMs
+ *  ROUTINE NAME:	os_delay_ms
  *
- *  DESCRIPTION:	OS_Delay in units of 1mS
+ *  DESCRIPTION:	os_delay in units of 1mS
  *
  *  INPUT:			Delay interval
  *
@@ -247,18 +247,18 @@ OS_DelayUs( uint32_t MicroSecondCounter )
  *
  *******************************************************************/
 void
-OS_DelayMs( uint16_t ms )
+os_delay_ms( uint16_t ms )
 {
     while (ms--)
     {
-        OS_DelayUs(1000);
+        os_delay_us(1000);
     }
 }
 
 /********************************************************************
  *  DESC
  *
- *  ROUTINE NAME:   OSTickInt
+ *  ROUTINE NAME:   os_tick_interrupt
  *
  *  DESCRIPTION:    OS timer interrupt. The PIC32MX and the Luminary
  *					Cortex use the respective core timers. For the PIC32MX
@@ -272,14 +272,14 @@ OS_DelayMs( uint16_t ms )
  *******************************************************************/
 
 void
-__ISR(_TIMER_2_VECTOR, IPL(TICK_IPL)) OSTickInt( void )
+__ISR(_TIMER_2_VECTOR, IPL(TICK_IPL)) os_tick_interrupt( void )
 {
     mT2ClearIntFlag();
-    OS_TimerHook();
-    if (0 == --OneSecPrescaler)
+    os_timerHook();
+    if (0 == --one_sec_prescale)
     {
-        OneSecPrescaler = SYSTICKHZ;
-        OSTickSeconds++;
+        one_sec_prescale = SYSTICKHZ;
+        os_seconds++;
     }
 }
 

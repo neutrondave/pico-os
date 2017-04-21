@@ -14,7 +14,7 @@
  *  ------  -------  ----   ----------------------
  * 4-26-07			 DS	    Creation
  *
- *  Copyright (c) 2009 - 2013 Dave Sandler
+ *  Copyright (c) 2009 - 2016 Dave Sandler
  *
  *  This file is part of pico.
  *
@@ -102,18 +102,18 @@
 	 *	Task related API services
 	 */
 
-	_SCOPE_ void     OS_QueInit(os_queue_t *, q_size_t, q_type_t *);
-	_SCOPE_ uint8_t  OS_QueAdd(os_queue_t *, q_type_t *);
-	_SCOPE_ q_size_t OS_QuePutArray(os_queue_t *, q_type_t *, q_size_t);
-	_SCOPE_ uint8_t  OS_QuePutString(os_queue_t *, q_type_t *);
-	_SCOPE_ uint8_t  OS_QueRemove(os_queue_t *, q_type_t *);
-	_SCOPE_ uint8_t  OS_QuePeek(os_queue_t *, q_type_t *);
-	_SCOPE_ void     OS_QueFlush(os_queue_t *);
-	#define		     OS_QuePut(q, i) 	OS_QueAdd(q, (q_type_t *)&i)
-	#define		     OS_QueGet(q, i) 	OS_QueRemove(q, (q_type_t *)&i)
-	#define		     OS_QueEmpty(q)		(q->inptr == q->outptr)
-	#define		     OS_QueFull(q)		(((q->inptr + 1) % q->qsize) == q->outptr)
-	#define  		 OS_QueAvailable(q) (q_size_t)(q.outptr - q.inptr - 1)
+	_SCOPE_ void     os_que_init(os_queue_t *, q_size_t, q_type_t *);
+	_SCOPE_ uint8_t  os_que_add(os_queue_t *, q_type_t *);
+	_SCOPE_ q_size_t os_que_putarray(os_queue_t *, q_type_t *, q_size_t);
+	_SCOPE_ uint8_t  os_que_putstring(os_queue_t *, q_type_t *);
+	_SCOPE_ uint8_t  os_que_remove(os_queue_t *, q_type_t *);
+	_SCOPE_ uint8_t  os_que_peek(os_queue_t *, q_type_t *);
+	_SCOPE_ void     os_que_flush(os_queue_t *);
+	#define		     os_que_put(q, i) 	os_que_add(q, (q_type_t *)&i)
+	#define		     os_que_get(q, i) 	os_que_remove(q, (q_type_t *)&i)
+	#define		     os_que_empty(q)	(q->inptr == q->outptr)
+	#define		     os_que_full(q)		(((q->inptr + 1) % q->qsize) == q->outptr)
+	#define  		 os_que_free(q) 	(q_size_t)(q.outptr - q.inptr - 1)
 	#undef _SCOPE_
 #endif
 /*

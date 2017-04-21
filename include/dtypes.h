@@ -17,7 +17,7 @@
  *  09-19-12   		DS  	check if NULL was already defined;
  *							typically in stddef
  *
- *  Copyright (c) 2009 - 2013 Dave Sandler
+ *  Copyright (c) 2009 - 2016 Dave Sandler
  *
  *  This file is part of pico.
  *

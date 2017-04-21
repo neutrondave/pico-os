@@ -14,7 +14,7 @@
  *  ------  -------  ----   ----------------------
  * 5-21-13			 DS	    Creation
  *
- *  Copyright (c) 2013 Dave Sandler
+ *  Copyright (c) 2016 Dave Sandler
  *
  *  This file is part of pico.
  *
@@ -85,7 +85,7 @@
 		uint8_t      wake;
 		os_queue_t *serTxQ;
 		os_queue_t *serRxQ;
-	} SerPortInfo;
+	} Ser_portInfo;
 
 	#define	SER_PORT1		0
 	#define	SER_PORT2		1
@@ -121,7 +121,7 @@
 		#define _SCOPE_ extern	/**/
 	#endif
 
-	_SCOPE_ uint8_t SerialInit(SerPortInfo *portInfo);
+	_SCOPE_ uint8_t SerialInit(Ser_portInfo *portInfo);
 	_SCOPE_ void SerialTxStart(uint8_t port);
 
 	#ifdef ENABLE_UART1_DRIVER

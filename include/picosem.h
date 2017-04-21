@@ -14,7 +14,7 @@
  *  ------  -------  ----   ----------------------
  *	09-27-2012		DS		modified to use protothreads
  *
- *  Copyright (c) 2009 - 2013 Dave Sandler
+ *  Copyright (c) 2009 - 2016 Dave Sandler
  *
  *  This file is part of pico.
  *
@@ -68,8 +68,8 @@
 
 	typedef struct
 	{
-	    k_list_t  SemLink;
-	    uint8_t    SemCount;
+	    k_list_t  sem_link;
+	    uint8_t   sem_count;
 	} os_sem_t;
 
 	#ifdef PICO_C
@@ -87,25 +87,25 @@
 	#define OS_SemWait( pt, sem, timeout )				\
 	    do												\
 	    {												\
-	        OS_Delay(ME, timeout);						\
+	        os_delay(ME, timeout);						\
 	        LC_SET((pt)->lc);							\
-	        if(!sem.SemCount && !(TaskTimerExpired(ME)))\
+	        if(!sem.sem_count && !(task_timer_expired(ME)))\
 	        {											\
-	            OS_Suspend( (k_list_t *)&sem );			\
+	            os_suspend( (k_list_t *)&sem );			\
 	            return PT_WAITING;						\
 	        }											\
 	    }												\
 	    while(0);										\
-	    if (sem.SemCount)								\
+	    if (sem.sem_count)								\
 	    {												\
-	        sem.SemCount--;								\
+	        sem.sem_count--;								\
 	    }												\
 	/*
 	 *	Semaphore related API services
 	 */
-	_SCOPE_ void OS_SemInit( os_sem_t * );
-	_SCOPE_ void OS_SemSignal( os_sem_t * );
-	_SCOPE_ uint8_t OS_SemPeek( os_sem_t * );
+	_SCOPE_ void os_sem_init( os_sem_t * );
+	_SCOPE_ void os_sem_signal( os_sem_t * );
+	_SCOPE_ uint8_t os_sem_peek( os_sem_t * );
 
 	#undef _SCOPE_
 

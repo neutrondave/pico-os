@@ -15,11 +15,11 @@
  * 4-26-07			 DS	    Creation
  * 9-30-10			 DS	    Modify for the PIC32MX and Microchip libs
  * 9-15-11			 DS	    Modify for singly linked lists
- * 9-06-12			 DS	    OSTickSeconds made persistent
+ * 9-06-12			 DS	    os_seconds made persistent
  * 9-21-12			 DS	    unlink UIP from the PIC32 and TCP/IP. simple conditional
  *							build switch
  *
- *  Copyright (c) 2009 - 2013 Dave Sandler
+ *  Copyright (c) 2009 - 2016 Dave Sandler
  *
  *  This file is part of pico.
  *
@@ -74,7 +74,7 @@
 	#include "pt.h"
 
 	/*
-	 * TCB related stuff
+	 * tcb related stuff
 	 */
 	#define FOREVER         				while( 1 == 1)
 	#define PRIOMASK						         0x0F
@@ -87,7 +87,7 @@
 	#define TCB_TIMEOUT						         0x20
 	#define TCB_TMRSTAT						         0x60
 
-	#define	ME				                      CurTask
+	#define	ME				                  current_task
 	#define	NO_TIMEOUT		                 ((timer_t)-1)
 	#define	NOW				                  ((timer_t)0)
 	#define	TIME_EXPIRED	                  ((timer_t)0)
@@ -101,8 +101,8 @@
 	/*
 	 * data types
 	 */
-	#define	OS_data
-	#define OS_vars
+	#define	OS_DATA
+	#define OS_VARS
 	#define register
 
 	typedef uint32_t timer_t;
@@ -110,24 +110,24 @@
 	typedef uint8_t  s_link_t;
 	typedef uint32_t stack_t;
 
-	typedef	uint8_t OS_error;
+	typedef	uint8_t os_error;
 
 	typedef struct link
 	{
-	    struct link OS_data *next;
-	    struct link OS_data *last;
+	    struct link OS_DATA *next;
+	    struct link OS_DATA *last;
 	} k_list_t;
 
 	typedef struct slink
 	{
-	    struct slink OS_data *next;
+	    struct slink OS_DATA *next;
 	} k_slist_t;
 
 	typedef struct
 	{
 	    s_link_t	head;
 	    s_link_t	tail;
-	} K_QUEUE;
+	} k_queue_t;
 
 	#define Q_NULL  (k_list_t *)0
 	#define SL_NULL (k_slist_t *)0
@@ -137,19 +137,19 @@
 
 	typedef struct
 	{
-	    k_list_t TcbLink;
-	    timer_t  Timer;
-	    timer_t  gpTimer;
-	    uint8_t  Flags;
-	    uint8_t  TaskEnv;
-	    tcb_pt_t TCBpt;
-	    int      ( *pThread )( tcb_pt_t * );
+	    k_list_t tcb_link;
+	    timer_t  timer;
+	    timer_t  gptimer;
+	    uint8_t  flags;
+	    uint8_t  task_env;
+	    tcb_pt_t tcbpt;
+	    int      ( *p_thread )( tcb_pt_t * );
 	} tcb_entry_t;
 
 	typedef struct
 	{
-	    k_slist_t  ThookLink;
-	    void     ( *Thookfun )( void );
+	    k_slist_t  t_hook_link;
+	    void     ( *p_timerhook )( void );
 	} t_hook_entry_t;
 
 	#ifdef USES_UIP
@@ -163,30 +163,30 @@
 		{
 		    uint8_t	type;
 		    uint8_t	protocol;
-		    uint16_t rPort;
-		    void  ( *pAppHandler )( void );
+		    uint16_t r_port;
+		    void  ( *p_app_handler )( void );
 		} uip_appentry_t;
 
 		#define ProtoTCP    1
 		#define ProtoUDP    2
 		#define ProtoNULL   0
-		_SCOPE_	timer_t	UIP_Timer;
-		_SCOPE_	timer_t	ARP_Timer;
+		_SCOPE_	timer_t	uip_timer;
+		_SCOPE_	timer_t	arp_timer;
 		/*
 		 * to get to ethernet header info in buffer
 		 */
 		#define BUF          	((struct uip_eth_hdr *)&uip_buf[0])
 		_SCOPE_ uip_ipaddr_t 	ipaddr;
-		_SCOPE_ void        	kUIP_AppHandler( void );
-		_SCOPE_ uint8_t 		kUIP_AppAddEntry( uint8_t, uint16_t, void ( *)(void) );
-		_SCOPE_ void 			kUIP_AppDeleteEntry( uint16_t );
-		_SCOPE_ void        	kUIP_AppUDPHandler( void );
-		_SCOPE_ uint8_t 		kUIP_AppAddUDPEntry( uint8_t, uint16_t, void ( *)(void) );
-		_SCOPE_ void 			kUIP_AppDeleteUDPEntry( uint16_t );
+		_SCOPE_ void        	kuip_app_handler( void );
+		_SCOPE_ uint8_t 		kuip_app_add_entry( uint8_t, uint16_t, void ( *)(void) );
+		_SCOPE_ void 			kuip_app_remove_entry( uint16_t );
+		_SCOPE_ void        	kuip_app_udphandler( void );
+		_SCOPE_ uint8_t 		kuip_app_add_udpentry( uint8_t, uint16_t, void ( *)(void) );
+		_SCOPE_ void 			kuip_app_remove_udpentry( uint16_t );
 
 		#define UnusedPort	0
 		#define ClientPort	1
-		#define ServerPort	2
+		#define Server_port	2
 	#endif
 	/*
 	 ********************************************************************
@@ -201,60 +201,60 @@
 	/*
 	 *	Task related API services
 	 */
-	_SCOPE_ void         OS_StartSched( void );
-	_SCOPE_ tcb_entry_t *OS_CreateTask( uint8_t, uint8_t, int ( *)(tcb_pt_t *));
-	_SCOPE_ void 		 OS_ResumeTask( tcb_entry_t * );
-	_SCOPE_ void 	     OS_SuspendTask( k_list_t *, k_list_t * );
-	_SCOPE_ void 		 OS_KillTask( tcb_entry_t * );
-	_SCOPE_ tcb_entry_t *OS_GetTCB( void );
-	_SCOPE_ void 	     OS_ReleaseTCB( tcb_entry_t * );
-	#define				 OS_Suspend( q )	OS_SuspendTask( q, (k_list_t *)ME )
-	_SCOPE_ void		 OS_AddTimerHook( t_hook_entry_t *, void ( *)(void));
-	_SCOPE_ void		 OS_AddSchedHook( t_hook_entry_t *, void ( *)(void));
-	_SCOPE_ void		 OS_HookHandler(t_hook_entry_t *);
-	_SCOPE_ void		 OS_ReleaseTimerHook( t_hook_entry_t *);
-	_SCOPE_ void		 OS_ReleaseSchedHook( t_hook_entry_t *);
-	_SCOPE_ void		 OS_AddHook( t_hook_entry_t *, t_hook_entry_t *, void ( *)(void));
-	_SCOPE_ void		 OS_ReleaseHook( t_hook_entry_t *, t_hook_entry_t *);
+	_SCOPE_ void         os_start_sched( void );
+	_SCOPE_ tcb_entry_t *os_create_task( uint8_t, uint8_t, int ( *)(tcb_pt_t *));
+	_SCOPE_ void 		 os_resume_task( tcb_entry_t * );
+	_SCOPE_ void 	     os_suspend_task( k_list_t *, k_list_t * );
+	_SCOPE_ void 		 os_kill_task( tcb_entry_t * );
+	_SCOPE_ tcb_entry_t *os_get_tcb( void );
+	_SCOPE_ void 	     os_release_tcb( tcb_entry_t * );
+	#define				 os_suspend( q )	os_suspend_task( q, (k_list_t *)ME )
+	_SCOPE_ void		 os_add_timerhook( t_hook_entry_t *, void ( *)(void));
+	_SCOPE_ void		 os_add_schedhook( t_hook_entry_t *, void ( *)(void));
+	_SCOPE_ void		 os_hook_handler(t_hook_entry_t *);
+	_SCOPE_ void		 os_release_timerhook( t_hook_entry_t *);
+	_SCOPE_ void		 os_release_schedhook( t_hook_entry_t *);
+	_SCOPE_ void		 os_add_hook( t_hook_entry_t *, t_hook_entry_t *, void ( *)(void));
+	_SCOPE_ void		 os_release_hook( t_hook_entry_t *, t_hook_entry_t *);
 	/*
 	 *	Timing related API services
 	 */
-	_SCOPE_ void	OS_Delay( tcb_entry_t *, timer_t );
-	#define			getTaskTimer( t )		t->Timer
-	#define			setTaskTimer( t, d )	t->Timer = d
-	#define			startTaskTimer( t )		t->Flags |= TCB_TIMING; t->Flags &= ~TCB_TIMEOUT
-	#define			getTimerStatus( t )		(t->Timer & TCB_TMRSTAT)
-	#define			getSysTick( )			CurrentTick
-	#define			TaskTimerExpired(t)	    (0 != (t->Flags & TCB_TIMEOUT))
-	#define			setgpTimer( t, d )	    t->gpTimer = d
-	#define			gpTimerExpired(t)	    (0 ==  t->gpTimer)
-	#define			getTaskEnv( t )			t->TaskEnv
+	_SCOPE_ void	os_delay( tcb_entry_t *, timer_t );
+	#define			get_task_timer( t )		t->timer
+	#define			set_task_timer( t, d )	t->timer = d
+	#define			start_task_timer( t )	t->flags |= TCB_TIMING; t->flags &= ~TCB_TIMEOUT
+	#define			get_timer_status( t )	(t->timer & TCB_TMRSTAT)
+	#define			get_os_ticks( )			current_tick
+	#define			task_timer_expired(t)	(0 != (t->flags & TCB_TIMEOUT))
+	#define			setgptimer( t, d )	    t->gptimer = d
+	#define			gp_timer_expired(t)	    (0 ==  t->gptimer)
+	#define			gettask_env( t )		t->task_env
 	/*
 	 * low-level functions
 	 */
-	_SCOPE_ void	    OS_Init( void );
-	_SCOPE_ void 	    ServiceOSTimers( void );
-	_SCOPE_ void        OS_TimerHook( void );
-	_SCOPE_ void        OS_DelayMs( uint16_t );
-	_SCOPE_ void        OS_DelayUs( uint32_t );
-	_SCOPE_ void        OS_TickDelay( uint16_t );
-	_SCOPE_ void 	    KQ_qinsert( k_list_t *, k_list_t * );
-	_SCOPE_ k_list_t   *KQ_qdelete( k_list_t * );
-	_SCOPE_ void        KQ_ndelete( k_list_t * );
-	_SCOPE_ void 	    KQ_slinsert( k_slist_t *, k_slist_t * );
-	_SCOPE_ k_slist_t  *KQ_sldelete( k_slist_t * );
-	_SCOPE_ void        KQ_slndelete( k_slist_t *, k_slist_t * );
+	_SCOPE_ void	    os_init( void );
+	_SCOPE_ void 	    service_os_timers( void );
+	_SCOPE_ void        os_timerHook( void );
+	_SCOPE_ void        os_delay_ms( uint16_t );
+	_SCOPE_ void        os_delay_us( uint32_t );
+	_SCOPE_ void        os_tick_delay( uint16_t );
+	_SCOPE_ void 	    kq_qinsert( k_list_t *, k_list_t * );
+	_SCOPE_ k_list_t   *kq_qdelete( k_list_t * );
+	_SCOPE_ void        kq_ndelete( k_list_t * );
+	_SCOPE_ void 	    kq_slinsert( k_slist_t *, k_slist_t * );
+	_SCOPE_ k_slist_t  *kq_sldelete( k_slist_t * );
+	_SCOPE_ void        kq_slndelete( k_slist_t *, k_slist_t * );
 	/*
 	 *	kernel data, ...
 	 */
-	_SCOPE_ tcb_entry_t	*CurTask;
-	_SCOPE_ timer_t		 CurrentTick;
-	_SCOPE_	uint32_t	 OSTickSeconds;
+	_SCOPE_ tcb_entry_t	*current_task;
+	_SCOPE_ timer_t		 current_tick;
+	_SCOPE_	uint32_t	 os_seconds;
 	/*
 	 *	kernel event flags, ...
 	 */
 	#define FLAG_SYSTICK	0
-	_SCOPE_	uint32_t OSEventFlags;
+	_SCOPE_	uint32_t os_event_flags;
 
 	#undef _SCOPE_
 #endif /* safety check for duplicate .h file */

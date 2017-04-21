@@ -16,7 +16,7 @@
  *   06-20-09   DS  	Module creation.
  *   09-27-12   DS  	OS_SemWait rewritten to use protothreads
  *
- *  Copyright (c) 2009 - 2013 Dave Sandler
+ *  Copyright (c) 2009 - 2016 Dave Sandler
  *
  *  This file is part of pico.
  *
@@ -101,10 +101,10 @@
  *
  */
 void
-OS_SemInit( os_sem_t *sem )
+os_sem_init( os_sem_t *sem )
 {
-    sem->SemCount = 0;
-    sem->SemLink.next = sem->SemLink.last = (k_list_t *)sem;
+    sem->sem_count = 0;
+    sem->sem_link.next = sem->sem_link.last = (k_list_t *)sem;
 }
 
 /**
@@ -119,22 +119,22 @@ OS_SemInit( os_sem_t *sem )
  * \return	none
  */
 void
-OS_SemSignal( os_sem_t *sem )
+os_sem_signal( os_sem_t *sem )
 {
-    if( sem->SemLink.next != ( k_list_t *)sem )
+    if( sem->sem_link.next != ( k_list_t *)sem )
         {
-            while( sem->SemLink.next != ( k_list_t *)sem )
+            while( sem->sem_link.next != ( k_list_t *)sem )
                 {
                     /*
                      * resume anyone wating on this semaphore
                      */
-                    OS_ResumeTask( (tcb_entry_t *)sem->SemLink.next );
+                    os_resume_task( (tcb_entry_t *)sem->sem_link.next );
                 }
         }
     /*
      * bump the counter
      */
-    sem->SemCount++;
+    sem->sem_count++;
 }
 
 /**
@@ -166,9 +166,9 @@ OS_SemSignal( os_sem_t *sem )
 * \return	semaphore count value
 */
 uint8_t
-OS_SemPeek( os_sem_t *sem )
+os_sem_peek( os_sem_t *sem )
 {
-    return(sem->SemCount);
+    return(sem->sem_count);
 }
 /** @} */
 /*

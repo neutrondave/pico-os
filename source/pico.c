@@ -15,19 +15,19 @@
  *   04-23-07   DS  	Module creation.
  *   09-30-10   DS  	Modified for the PIC32MX.
  *   10-10-10   DS  	added proto thread support
- *   08-21-11   DS  	added OS_TickDelay for dead delays
+ *   08-21-11   DS  	added os_tick_delay for dead delays
  *   09-15-11   DS  	added single link list functions
  *						OS tick interrupt timer hook
  *   03-22-12   DS  	added pico scheduling loop hook
  *   09-19-12   DS  	single switch USES_UIP for the UIP TCP/IP stack
  *							as opposed to processor specific switching
- *						reworked ServiceOSTimers. changed the do{}while to
+ *						reworked service_os_timers. changed the do{}while to
  *							a for loop for readability; also, we'll handle
  *							timer updates only when time's elapsed.
  *   09-28-12   DS  	doxygen documentation support
- *   05-30-13   DS  	fix OS_TickDelay(). immediate fall through meant no delay.
+ *   05-30-13   DS  	fix os_tick_delay(). immediate fall through meant no delay.
  *
- *  Copyright (c) 2009 - 2013 Dave Sandler
+ *  Copyright (c) 2009 - 2016 Dave Sandler
  *
  *  This file is part of pico.
  *
@@ -137,12 +137,12 @@
  * @{
  */
 
-static 	k_list_t       k_ready_list;	/* !< list of tasks ready to run	                */
-static	k_list_t		 k_wait_list;	/* !< list of tasks waiting to run	                */
+static 	k_list_t       	k_ready_list;	/* !< list of tasks ready to run	                */
+static	k_list_t		k_wait_list;	/* !< list of tasks waiting to run	                */
 static	t_hook_entry_t *k_thook_list;	/* !< list of functions to be executed every tick	*/
 static	t_hook_entry_t *k_loop_list;	/* !< list of tasks executed every kernel pass      */
-static 	tcb_entry_t    TCB[N_TASKS];	/* !< pico taskc ontrol blocks						*/
-static	timer_t		 LastTick;		/* !< last captured timer value 					*/
+static 	tcb_entry_t    	tcb[N_TASKS];	/* !< pico taskc ontrol blocks						*/
+static	timer_t		 	last_tick;		/* !< last captured timer value 					*/
 /** @} */
 /*
  *********************************************************************
@@ -150,7 +150,7 @@ static	timer_t		 LastTick;		/* !< last captured timer value 					*/
  *   Prototypes
  */
 
-extern 		void	SetupTickInterrupt(void);
+extern void	os_tick_init(void);
 
 /*
  *********************************************************************
@@ -169,7 +169,7 @@ extern 		void	SetupTickInterrupt(void);
  *********************************************************************
  *
  * This is the kernel's main loop.
- *	Functionally, OS_StartSched executes forever, updating timers in
+ *	Functionally, os_start_sched executes forever, updating timers in
  *	task control blocks, executing any kernel 'hooked' functions, as
  *	well as the highest priority task waiting on the ready list.
  *
@@ -189,27 +189,27 @@ extern 		void	SetupTickInterrupt(void);
  int
  main(void)
  {
-	OS_Init();
+	os_init();
 		.
 		.
-	OS_StartSched();
+	os_start_sched();
 	return(-1);
 }
  \endcode
  *
  */
 void
-OS_StartSched( void )
+os_start_sched( void )
 {
     FOREVER
     {
-        ServiceOSTimers();
-        OS_HookHandler(k_loop_list);
+        service_os_timers();
+        os_hook_handler(k_loop_list);
 
         if( &k_ready_list != k_ready_list.next )
         {
-            CurTask = (tcb_entry_t *)k_ready_list.next;
-            CurTask->pThread(&(CurTask->TCBpt));
+            current_task = (tcb_entry_t *)k_ready_list.next;
+            current_task->p_thread(&(current_task->tcbpt));
         }
     }
 }
@@ -218,8 +218,8 @@ OS_StartSched( void )
  *
  *********************************************************************
  *
- * kernel data structures are initialized. OS_Init() must be called
- *	before executing the kernel main loop. Functionally, OS_Init()
+ * kernel data structures are initialized. os_init() must be called
+ *	before executing the kernel main loop. Functionally, os_init()
  *	sets up the system tick timer, flushes all kernel queues, and
  *	clears and releases all of the kernel's task control blocks.
  *
@@ -236,31 +236,31 @@ OS_StartSched( void )
     int
     main(void)
     {
-	    OS_Init();
+	    os_init();
 		    .
 		    .
-	    OS_StartSched();
+	    os_start_sched();
 	    return(-1);
     }
     \endcode
  *
  */
 void
-OS_Init( void )
+os_init( void )
 {
     uint8_t index = 0;
     /*
      * initialize the target's tick hardware
      */
-    SetupTickInterrupt();
+    os_tick_init();
     k_ready_list.next = k_ready_list.last = &k_ready_list;
     k_wait_list.next  = k_wait_list.last  = &k_wait_list;
     k_thook_list	  = (t_hook_entry_t *)SL_NULL;
     k_loop_list	      = (t_hook_entry_t *)SL_NULL;
-    LastTick          = getSysTick();
+    last_tick         = get_os_ticks();
     do
     {
-        OS_ReleaseTCB(&TCB[index]);
+        os_release_tcb(&tcb[index]);
     }
     while ( ++index < N_TASKS );
 }
@@ -281,7 +281,7 @@ OS_Init( void )
  * \param env 		task 'environment' variable
  * \param pr_addr	task function pointer
  *
- * \return 	 		pointer to the TCB; NULL if none available
+ * \return 	 		pointer to the tcb; NULL if none available
  *
  * The following example illustrates the allocation and creation of a
  *	pico TASK block.
@@ -292,7 +292,7 @@ OS_Init( void )
  #include pico.h
 
  #define myPrioLevel	8
- #define myTaskEnv		6
+ #define mytask_env		6
 
  int myTask(tcb_pt_t *);
 
@@ -300,7 +300,7 @@ OS_Init( void )
  anyfunc(void)
  {
 	tcb_entry_t t_handle;
-	t_handle = OS_CreateTask(myPrioLevel, myTaskEnv, myTask);
+	t_handle = os_create_task(myPrioLevel, mytask_env, myTask);
 	if ((tcb_pt_t *)NULL != t_handle){
 		task created successfully...
 	}
@@ -312,16 +312,16 @@ OS_Init( void )
  *
  */
 tcb_entry_t *
-OS_CreateTask( uint8_t prio, uint8_t env, int (*pr_addr)(tcb_pt_t *))
+os_create_task(uint8_t prio, uint8_t env, int (*pr_addr)(tcb_pt_t *))
 {
     tcb_entry_t *handle;
-    handle = OS_GetTCB();
+    handle = os_get_tcb();
     if ((tcb_entry_t *)Q_NULL != handle)
     {
-        handle->Flags    = (prio & PRIOMASK);
-        handle->TaskEnv  =  env;
-        handle->pThread  =  pr_addr;
-        PT_INIT(&handle->TCBpt);
+        handle->flags     = (prio & PRIOMASK);
+        handle->task_env  =  env;
+        handle->p_thread  =  pr_addr;
+        PT_INIT(&handle->tcbpt);
     }
     return( handle );
 }
@@ -347,7 +347,7 @@ OS_CreateTask( uint8_t prio, uint8_t env, int (*pr_addr)(tcb_pt_t *))
  #include pico.h
 
  #define myPrioLevel	8
- #define myTaskEnv		6
+ #define mytask_env		6
 
  int myTask(tcb_pt_t *);
  tcb_entry_t *someTaskHandle;
@@ -357,11 +357,11 @@ OS_CreateTask( uint8_t prio, uint8_t env, int (*pr_addr)(tcb_pt_t *))
  {
 	tcb_entry_t t_handle;
 
-	OS_ResumeTask(someTaskHandle);	// resume some task
+	os_resume_task(someTaskHandle);	// resume some task
 
-	t_handle = OS_CreateTask(myPrioLevel, myTaskEnv, myTask); // create a new task
+	t_handle = os_create_task(myPrioLevel, mytask_env, myTask); // create a new task
 	if ((tcb_entry_t *)NULL != t_handle){
-		OS_ResumeTask(t_handle);							  // we were successful. resume it
+		os_resume_task(t_handle);							  // we were successful. resume it
 	}
 	else {
 		otherwise handle the error as required here...
@@ -371,24 +371,24 @@ OS_CreateTask( uint8_t prio, uint8_t env, int (*pr_addr)(tcb_pt_t *))
  *
  */
 void
-OS_ResumeTask( tcb_entry_t *tcbp )
+os_resume_task( tcb_entry_t *tcbp )
 {
     tcb_entry_t *pReadyList;
     /*
      * remove the task from any queue it's waiting on
      * 	insert it onto the ready queue
      */
-    KQ_ndelete( (k_list_t *)tcbp );
+    kq_ndelete( (k_list_t *)tcbp );
     pReadyList = (tcb_entry_t *)k_ready_list.next;
     while( &k_ready_list != (k_list_t *)pReadyList )
     {
-        if((pReadyList->Flags & PRIOMASK) > (tcbp->Flags & PRIOMASK))
+        if((pReadyList->flags & PRIOMASK) > (tcbp->flags & PRIOMASK))
         {
             break;
         }
-        pReadyList = (tcb_entry_t *)pReadyList->TcbLink.next;
+        pReadyList = (tcb_entry_t *)pReadyList->tcb_link.next;
     }
-    KQ_qinsert((k_list_t *)pReadyList->TcbLink.last, (k_list_t *)tcbp);
+    kq_qinsert((k_list_t *)pReadyList->tcb_link.last, (k_list_t *)tcbp);
 }
 
 /**
@@ -415,16 +415,16 @@ OS_ResumeTask( tcb_entry_t *tcbp )
  anyfunc(void)
  {
 	if (there's a reason to stop some task){
-		OS_KillTask(someTaskHandle);	// stop this task from running
+		os_kill_task(someTaskHandle);	// stop this task from running
 	}
 }
  \endcode
  *
  */
 void
-OS_KillTask( tcb_entry_t *tcbp )
+os_kill_task( tcb_entry_t *tcbp )
 {
-    KQ_ndelete((k_list_t *)tcbp);
+    kq_ndelete((k_list_t *)tcbp);
 }
 
 /**
@@ -452,25 +452,25 @@ OS_KillTask( tcb_entry_t *tcbp )
  void
  anyfunc(void)
  {
-	OS_SuspendTask(&someQueue, (k_list_t *)someTaskHandle);
+	os_suspend_task(&someQueue, (k_list_t *)someTaskHandle);
 
 	pico.h also supplies a useful macro for the more likely occasions
 		when the suspended task is the currently running task...
 
-	OS_Suspend(someQueue);
+	os_suspend(someQueue);
 }
  \endcode
  *
  */
 void
-OS_SuspendTask( k_list_t *queue, k_list_t *node )
+os_suspend_task( k_list_t *queue, k_list_t *node )
 {
     /*
      * remove the task from any queue it's on
      *	then insert it to the given one ...
      */
-    KQ_ndelete(node);
-    KQ_qinsert(queue, node);
+    kq_ndelete(node);
+    kq_qinsert(queue, node);
 }
 
 /**
@@ -478,7 +478,7 @@ OS_SuspendTask( k_list_t *queue, k_list_t *node )
  *********************************************************************
  *
  * Search through the task control block structure for the first
- *	non-used TCB. In pico, a number of TCBs are statically allocated,
+ *	non-used tcb. In pico, a number of tcbs are statically allocated,
  *	to create a task, we need to find a free control block.
  *
  * \param	none
@@ -486,15 +486,15 @@ OS_SuspendTask( k_list_t *queue, k_list_t *node )
  * \return 	tcb_entry_t *; NULL if none available
  */
 tcb_entry_t *
-OS_GetTCB( void )
+os_get_tcb( void )
 {
     uint8_t index = 0;
     do
     {
-        if (TCB_FREE == (TCB[index].Flags & TCB_FREE))
+        if (TCB_FREE == (tcb[index].flags & TCB_FREE))
         {
-            TCB[index].Flags &= ~TCB_FREE;
-            return( &TCB[index] );
+            tcb[index].flags &= ~TCB_FREE;
+            return( &tcb[index] );
         }
     }
     while ( ++index < N_TASKS );
@@ -505,7 +505,7 @@ OS_GetTCB( void )
  *
  *********************************************************************
  *
- * Return a TCB to the task control block structure. This is useful
+ * Return a tcb to the task control block structure. This is useful
  *	for dynamic tasks that might be created on need, and returned
  *	on completion (spawn).
  *
@@ -514,14 +514,14 @@ OS_GetTCB( void )
  * \return 	none
  */
 void
-OS_ReleaseTCB( tcb_entry_t *tcbp )
+os_release_tcb( tcb_entry_t *tcbp )
 {
-    tcbp->TcbLink.next = (k_list_t *)tcbp;
-    tcbp->TcbLink.last = (k_list_t *)tcbp;
-    tcbp->Timer        =  0;
-    tcbp->gpTimer      =  0;
-    tcbp->Flags        = (TCB_FREE | PRIOMASK);
-    tcbp->TaskEnv      =  0;
+    tcbp->tcb_link.next = (k_list_t *)tcbp;
+    tcbp->tcb_link.last = (k_list_t *)tcbp;
+    tcbp->timer        =  0;
+    tcbp->gptimer      =  0;
+    tcbp->flags        = (TCB_FREE | PRIOMASK);
+    tcbp->task_env     =  0;
 }
 
 /**
@@ -538,9 +538,9 @@ OS_ReleaseTCB( tcb_entry_t *tcbp )
  * \return	none
  */
 void
-OS_AddTimerHook( t_hook_entry_t *node, void (*tfun_addr)(void) )
+os_add_timerhook( t_hook_entry_t *node, void (*tfun_addr)(void) )
 {
-    OS_AddHook((t_hook_entry_t *)&k_thook_list, node, tfun_addr);
+    os_add_hook((t_hook_entry_t *)&k_thook_list, node, tfun_addr);
 }
 
 /**
@@ -561,9 +561,9 @@ OS_AddTimerHook( t_hook_entry_t *node, void (*tfun_addr)(void) )
  * \return	none
  */
 void
-OS_AddSchedHook( t_hook_entry_t *node, void (*tfun_addr)(void) )
+os_add_schedhook( t_hook_entry_t *node, void (*tfun_addr)(void) )
 {
-    OS_AddHook((t_hook_entry_t *)&k_loop_list, node, tfun_addr);
+    os_add_hook((t_hook_entry_t *)&k_loop_list, node, tfun_addr);
 }
 
 /**
@@ -579,10 +579,10 @@ OS_AddSchedHook( t_hook_entry_t *node, void (*tfun_addr)(void) )
  * \return	none
  */
 void
-OS_AddHook( t_hook_entry_t *list, t_hook_entry_t *node, void (*tfun_addr)(void) )
+os_add_hook( t_hook_entry_t *list, t_hook_entry_t *node, void (*tfun_addr)(void) )
 {
-    node->Thookfun  = tfun_addr;
-    KQ_slinsert((k_slist_t *)list, (k_slist_t *)node);
+    node->p_timerhook  = tfun_addr;
+    kq_slinsert((k_slist_t *)list, (k_slist_t *)node);
 }
 
 /**
@@ -598,9 +598,9 @@ OS_AddHook( t_hook_entry_t *list, t_hook_entry_t *node, void (*tfun_addr)(void) 
  * \return 	none
  */
 void
-OS_ReleaseTimerHook( t_hook_entry_t *node )
+os_release_timerhook( t_hook_entry_t *node )
 {
-    OS_ReleaseHook((t_hook_entry_t *)&k_thook_list, node);
+    os_release_hook((t_hook_entry_t *)&k_thook_list, node);
 }
 
 /**
@@ -616,9 +616,9 @@ OS_ReleaseTimerHook( t_hook_entry_t *node )
  * \return	none
  */
 void
-OS_ReleaseSchedHook( t_hook_entry_t *node )
+os_release_schedhook( t_hook_entry_t *node )
 {
-    OS_ReleaseHook((t_hook_entry_t *)&k_loop_list, node);
+    os_release_hook((t_hook_entry_t *)&k_loop_list, node);
 }
 
 /**
@@ -633,9 +633,9 @@ OS_ReleaseSchedHook( t_hook_entry_t *node )
  * \return	none
  */
 void
-OS_ReleaseHook( t_hook_entry_t *list, t_hook_entry_t *node )
+os_release_hook( t_hook_entry_t *list, t_hook_entry_t *node )
 {
-    KQ_slndelete((k_slist_t *)list, (k_slist_t *)node);
+    kq_slndelete((k_slist_t *)list, (k_slist_t *)node);
 }
 
 /**
@@ -651,7 +651,7 @@ OS_ReleaseHook( t_hook_entry_t *list, t_hook_entry_t *node )
  * \return 	none
  */
 void
-KQ_qinsert( k_list_t *queue, k_list_t *node )
+kq_qinsert( k_list_t *queue, k_list_t *node )
 {
     node->next 		   = queue->next;
     node->last 		   = queue;
@@ -673,7 +673,7 @@ KQ_qinsert( k_list_t *queue, k_list_t *node )
  * \return 	deleted node; NULL if none
  */
 k_list_t *
-KQ_qdelete( k_list_t *queue )
+kq_qdelete( k_list_t *queue )
 {
     k_list_t *node;		/* the deleted node */
     if (queue->next == queue )
@@ -698,7 +698,7 @@ KQ_qdelete( k_list_t *queue )
  * \return 	none
  */
 void
-KQ_ndelete( k_list_t *node )
+kq_ndelete( k_list_t *node )
 {
     k_list_t *next_node;
     k_list_t *last_node;
@@ -723,7 +723,7 @@ KQ_ndelete( k_list_t *node )
  * \return 	none
  */
 void
-KQ_slinsert( k_slist_t *s_list, k_slist_t *node )
+kq_slinsert( k_slist_t *s_list, k_slist_t *node )
 {
     node->next 	 = s_list->next;
     s_list->next = node;
@@ -734,7 +734,7 @@ KQ_slinsert( k_slist_t *s_list, k_slist_t *node )
  *********************************************************************
  *
  * Low level function to delete and return the next element of a singly
- *	linked list. KQ_sldelete() traverses to the end of the list, and
+ *	linked list. kq_sldelete() traverses to the end of the list, and
  *	deletes the last node. A pointer to that node is returned.
  *
  * \param 	s_list    	is a pointer to the list
@@ -742,7 +742,7 @@ KQ_slinsert( k_slist_t *s_list, k_slist_t *node )
  * \return 	the deleted node; NULL if none
  */
 k_slist_t *
-KQ_sldelete( k_slist_t *s_list )
+kq_sldelete( k_slist_t *s_list )
 {
     k_slist_t *node;		/* the deleted node */
     node = s_list->next;
@@ -758,7 +758,7 @@ KQ_sldelete( k_slist_t *s_list )
  *********************************************************************
  *
  * Low level function to delete a node from a singly linked list.
- *	KQ_slndelete() traverses the list, searching for the node. Once
+ *	kq_slndelete() traverses the list, searching for the node. Once
  *	found, the node is removed from the list.
  *
  * \param	s_list    	is a pointer to the list
@@ -767,7 +767,7 @@ KQ_sldelete( k_slist_t *s_list )
  * \return 	none
  */
 void
-KQ_slndelete( k_slist_t *s_list, k_slist_t *node )
+kq_slndelete( k_slist_t *s_list, k_slist_t *node )
 {
     k_slist_t *next_node;
     for((next_node = s_list->next); (SL_NULL != next_node); (next_node = s_list->next))
@@ -802,15 +802,15 @@ KQ_slndelete( k_slist_t *s_list, k_slist_t *node )
  */
 
 void
-OS_Delay( tcb_entry_t *task, timer_t delay )
+os_delay( tcb_entry_t *task, timer_t delay )
 {
     /*
      * remove the task from any queue it's on
      *	set the timer value and leave ...
      */
-    KQ_ndelete((k_list_t *)task);
-    setTaskTimer( task, delay );
-    startTaskTimer( task );
+    kq_ndelete((k_list_t *)task);
+    set_task_timer( task, delay );
+    start_task_timer( task );
 }
 
 /**
@@ -827,23 +827,23 @@ OS_Delay( tcb_entry_t *task, timer_t delay )
  * \return 	none
  */
 void
-OS_TickDelay( uint16_t delay )
+os_tick_delay( uint16_t delay )
 {
     timer_t		TempTick;
-    TempTick = CurrentTick + delay;
+    TempTick = current_tick + delay;
     TempTick += 1;
     do
     {
         ClrWdt();
     }
-    while(TempTick != CurrentTick);
+    while(TempTick != current_tick);
 }
 
 /**
  *
  *********************************************************************
  *
- * Kernel timer interrupt processing. The system tick counter (CurrentTick)
+ * Kernel timer interrupt processing. The system tick counter (current_tick)
  *	is incremented, followed by invocation of all functions on the system
  *	timer hook list.
  *
@@ -852,10 +852,10 @@ OS_TickDelay( uint16_t delay )
  * \return 	none
  */
 void
-OS_TimerHook( void )
+os_timerHook( void )
 {
-    ++CurrentTick;
-    OS_HookHandler(k_thook_list);
+    ++current_tick;
+    os_hook_handler(k_thook_list);
 }
 
 /**
@@ -871,11 +871,11 @@ OS_TimerHook( void )
  * \return 	none
  */
 void
-OS_HookHandler( t_hook_entry_t *hooks )
+os_hook_handler( t_hook_entry_t *hooks )
 {
-    for(; SL_NULL != (k_slist_t *)hooks ; hooks = (t_hook_entry_t *)hooks->ThookLink.next)
+    for(; SL_NULL != (k_slist_t *)hooks ; hooks = (t_hook_entry_t *)hooks->t_hook_link.next)
     {
-        hooks->Thookfun();
+        hooks->p_timerhook();
     }
 }
 
@@ -901,60 +901,60 @@ OS_HookHandler( t_hook_entry_t *hooks )
  * \return 	none
  */
 void
-ServiceOSTimers( void )
+service_os_timers( void )
 {
     uint8_t 	TcbIndex;
     timer_t 	temp_t;
     timer_t 	ElapsedTime;
-    temp_t 		=  getSysTick();
-    ElapsedTime = (temp_t - LastTick);
-    LastTick 	=  temp_t;
+    temp_t 		=  get_os_ticks();
+    ElapsedTime = (temp_t - last_tick);
+    last_tick 	=  temp_t;
     if (0 != ElapsedTime)
     {
         #ifdef USES_UIP
-           if ( UIP_Timer > ElapsedTime )
+           if ( uip_timer > ElapsedTime )
            {
-               UIP_Timer -= ElapsedTime;
+               uip_timer -= ElapsedTime;
            }
            else
            {
-               UIP_Timer =  0;
+               uip_timer =  0;
            }
-           if ( ARP_Timer > ElapsedTime )
+           if ( arp_timer > ElapsedTime )
            {
-               ARP_Timer -= ElapsedTime;
+               arp_timer -= ElapsedTime;
            }
            else
            {
-               ARP_Timer =  0;
+               arp_timer =  0;
            }
         #endif
         for (TcbIndex = 0; TcbIndex < N_TASKS; TcbIndex++)
         {
-            if ((0 != TCB[TcbIndex].gpTimer) && (NO_TIMEOUT != TCB[TcbIndex].gpTimer))
+            if ((0 != tcb[TcbIndex].gptimer) && (NO_TIMEOUT != tcb[TcbIndex].gptimer))
             {
-                if ( TCB[TcbIndex].gpTimer > ElapsedTime )
+                if ( tcb[TcbIndex].gptimer > ElapsedTime )
                 {
-                    TCB[TcbIndex].gpTimer -= ElapsedTime;
+                    tcb[TcbIndex].gptimer -= ElapsedTime;
                 }
                 else
                 {
-                   TCB[TcbIndex].gpTimer = TIME_EXPIRED;
+                   tcb[TcbIndex].gptimer = TIME_EXPIRED;
                 }
             }
-            if ( TCB_TIMING == (TCB[TcbIndex].Flags & TCB_TIMINGMASK))
+            if ( TCB_TIMING == (tcb[TcbIndex].flags & TCB_TIMINGMASK))
             {
-                if ( TCB[TcbIndex].Timer > ElapsedTime )
+                if ( tcb[TcbIndex].timer > ElapsedTime )
                 {
-                    TCB[TcbIndex].Timer -= ElapsedTime;
+                    tcb[TcbIndex].timer -= ElapsedTime;
                 }
                 else
                 {
-                    TCB[TcbIndex].Timer  =  TIME_EXPIRED;
-                    TCB[TcbIndex].Flags &= ~TCB_TIMING;
-                    TCB[TcbIndex].Flags |=  TCB_TIMEOUT;
-                    KQ_ndelete((k_list_t *)&TCB[TcbIndex]);
-                    OS_ResumeTask(&TCB[TcbIndex]);
+                    tcb[TcbIndex].timer  =  TIME_EXPIRED;
+                    tcb[TcbIndex].flags &= ~TCB_TIMING;
+                    tcb[TcbIndex].flags |=  TCB_TIMEOUT;
+                    kq_ndelete((k_list_t *)&tcb[TcbIndex]);
+                    os_resume_task(&tcb[TcbIndex]);
                 }
             }
         }

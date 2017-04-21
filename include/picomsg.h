@@ -14,7 +14,7 @@
  *  ------  -------  ----   ----------------------
  *	09-28-12 		DAS		modified to use protothreads
  *
- *  Copyright (c) 2009 - 2013 Dave Sandler
+ *  Copyright (c) 2009 - 2016 Dave Sandler
  *
  *  This file is part of pico.
  *
@@ -69,14 +69,14 @@
 
 	typedef struct
 	{
-	    k_list_t MsgList;
+	    k_list_t msg_list;
 	    uint8_t  *message;
 	} os_msg_t;
 
 	typedef struct
 	{
-	    k_list_t MsgQueue;
-	    os_sem_t MBoxSem;
+	    k_list_t msg_queue;
+	    os_sem_t mbox_sem;
 	} os_mail_t;
 
 	#ifdef PICOMSG_C
@@ -94,28 +94,28 @@
 	#define OS_MsgReceive( pt, mbox, msg, timeout )						\
 	    do																\
 	    {																\
-	            OS_Delay(ME, timeout);									\
+	            os_delay(ME, timeout);									\
 	            LC_SET((pt)->lc);										\
-	            if(!mbox->MBoxSem.SemCount && !(TaskTimerExpired(ME)))	\
+	            if(!mbox->mbox_sem.sem_count && !(task_timer_expired(ME)))	\
 	            {														\
-	                OS_Suspend((k_list_t *)&mbox->MBoxSem);				\
+	                os_suspend((k_list_t *)&mbox->mbox_sem);				\
 	                return PT_WAITING;									\
 	            }														\
 	    }																\
 	    while(0);														\
-	    if (sem.SemCount)												\
+	    if (sem.sem_count)												\
 	    {																\
-	        sem.SemCount--;												\
-	        msg = (os_msg_t *)KQ_qdelete((k_list_t *)mbox)  				\
+	        sem.sem_count--;												\
+	        msg = (os_msg_t *)kq_qdelete((k_list_t *)mbox)  				\
 	    }																\
 	           
 	/*
 	 *	Messaging related API services
 	 */
-	_SCOPE_ void OS_MBoxInit( os_mail_t * );
-	_SCOPE_ void OS_MsgInit( os_msg_t * );
-	_SCOPE_ void OS_MsgSend( os_msg_t *, os_mail_t * );
-	#define 	 OS_MsgPeek(m)  OS_SemPeek(&m->MBoxSem)
+	_SCOPE_ void os_mbox_init( os_mail_t * );
+	_SCOPE_ void os_msg_init( os_msg_t * );
+	_SCOPE_ void os_msg_send( os_msg_t *, os_mail_t * );
+	#define 	 os_msg_peek(m)  os_sem_peek(&m->mbox_sem)
 	#define		 OS_NO_REPLY	(os_mail_t *)0
 
 	#undef _SCOPE_
