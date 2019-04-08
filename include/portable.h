@@ -186,11 +186,6 @@
 	#define ENTER_CRITICAL()		DI()
 	#define EXIT_CRITICAL()			EI()
 	#define portNOP()
-	#ifdef PORTABLE_C
-		void os_tick_init(void);
-	#else
-		extern void os_tick_init(void);
-	#endif
 #endif /* safety check for duplicate .h file */
 /*
  *  END OF portable.h

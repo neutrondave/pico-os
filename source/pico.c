@@ -829,14 +829,14 @@ os_delay( tcb_entry_t *task, timer_t delay )
 void
 os_tick_delay( uint16_t delay )
 {
-    timer_t		TempTick;
-    TempTick = current_tick + delay;
-    TempTick += 1;
+    timer_t		temp_tick;
+    temp_tick = current_tick + delay;
+    temp_tick += 1;
     do
     {
         ClrWdt();
     }
-    while(TempTick != current_tick);
+    while(temp_tick != current_tick);
 }
 
 /**
@@ -883,6 +883,24 @@ os_hook_handler( t_hook_entry_t *hooks )
  *
  *********************************************************************
  *
+ * calculate the time elapsed since the last call
+ *
+ * \param	hooks		pointer to the last tick count captured
+ *
+ * \return 	number of ticks elapsed
+ */
+timer_t  
+os_get_elapsed_time( timer_t *last )
+{
+    timer_t retval = (get_os_ticks() - *last);
+    *last = get_os_ticks();
+	return (retval);
+}
+
+/**
+ *
+ *********************************************************************
+ *
  * At each pass through the main loop we determine the time elapsed since
  *	our last entry into this function. The elapsed time is subtracted from
  *	each 'running' task timer (bounded by 0 at underflow). If a task timer
@@ -903,58 +921,55 @@ os_hook_handler( t_hook_entry_t *hooks )
 void
 service_os_timers( void )
 {
-    uint8_t 	TcbIndex;
-    timer_t 	temp_t;
-    timer_t 	ElapsedTime;
-    temp_t 		=  get_os_ticks();
-    ElapsedTime = (temp_t - last_tick);
-    last_tick 	=  temp_t;
-    if (0 != ElapsedTime)
+    uint8_t tcb_index;
+	timer_t elapsed_time = os_get_elapsed_time(&last_tick);
+
+    if (0 != elapsed_time)
     {
         #ifdef USES_UIP
-           if ( uip_timer > ElapsedTime )
+           if ( uip_timer > elapsed_time )
            {
-               uip_timer -= ElapsedTime;
+               uip_timer -= elapsed_time;
            }
            else
            {
                uip_timer =  0;
            }
-           if ( arp_timer > ElapsedTime )
+           if ( arp_timer > elapsed_time )
            {
-               arp_timer -= ElapsedTime;
+               arp_timer -= elapsed_time;
            }
            else
            {
                arp_timer =  0;
            }
         #endif
-        for (TcbIndex = 0; TcbIndex < N_TASKS; TcbIndex++)
+        for (tcb_index = 0; tcb_index < N_TASKS; tcb_index++)
         {
-            if ((0 != tcb[TcbIndex].gptimer) && (NO_TIMEOUT != tcb[TcbIndex].gptimer))
+            if ((0 != tcb[tcb_index].gptimer) && (NO_TIMEOUT != tcb[tcb_index].gptimer))
             {
-                if ( tcb[TcbIndex].gptimer > ElapsedTime )
+                if ( tcb[tcb_index].gptimer > elapsed_time )
                 {
-                    tcb[TcbIndex].gptimer -= ElapsedTime;
+                    tcb[tcb_index].gptimer -= elapsed_time;
                 }
                 else
                 {
-                   tcb[TcbIndex].gptimer = TIME_EXPIRED;
+                   tcb[tcb_index].gptimer = TIME_EXPIRED;
                 }
             }
-            if ( TCB_TIMING == (tcb[TcbIndex].flags & TCB_TIMINGMASK))
+            if ( TCB_TIMING == (tcb[tcb_index].flags & TCB_TIMINGMASK))
             {
-                if ( tcb[TcbIndex].timer > ElapsedTime )
+                if ( tcb[tcb_index].timer > elapsed_time )
                 {
-                    tcb[TcbIndex].timer -= ElapsedTime;
+                    tcb[tcb_index].timer -= elapsed_time;
                 }
                 else
                 {
-                    tcb[TcbIndex].timer  =  TIME_EXPIRED;
-                    tcb[TcbIndex].flags &= ~TCB_TIMING;
-                    tcb[TcbIndex].flags |=  TCB_TIMEOUT;
-                    kq_ndelete((k_list_t *)&tcb[TcbIndex]);
-                    os_resume_task(&tcb[TcbIndex]);
+                    tcb[tcb_index].timer  =  TIME_EXPIRED;
+                    tcb[tcb_index].flags &= ~TCB_TIMING;
+                    tcb[tcb_index].flags |=  TCB_TIMEOUT;
+                    kq_ndelete((k_list_t *)&tcb[tcb_index]);
+                    os_resume_task(&tcb[tcb_index]);
                 }
             }
         }

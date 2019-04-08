@@ -86,6 +86,7 @@
 	#define TCB_TIMINGMASK					         0xC0
 	#define TCB_TIMEOUT						         0x20
 	#define TCB_TMRSTAT						         0x60
+	#define TCB_NULL_ENV							 0xFF
 
 	#define	ME				                  current_task
 	#define	NO_TIMEOUT		                 ((timer_t)-1)
@@ -238,6 +239,7 @@
 	_SCOPE_ void        os_delay_ms( uint16_t );
 	_SCOPE_ void        os_delay_us( uint32_t );
 	_SCOPE_ void        os_tick_delay( uint16_t );
+	_SCOPE_ timer_t		os_get_elapsed_time( timer_t * );
 	_SCOPE_ void 	    kq_qinsert( k_list_t *, k_list_t * );
 	_SCOPE_ k_list_t   *kq_qdelete( k_list_t * );
 	_SCOPE_ void        kq_ndelete( k_list_t * );
@@ -248,7 +250,7 @@
 	 *	kernel data, ...
 	 */
 	_SCOPE_ tcb_entry_t	*current_task;
-	_SCOPE_ timer_t		 current_tick;
+	_SCOPE_ timer_t	volatile current_tick;
 	_SCOPE_	uint32_t	 os_seconds;
 	/*
 	 *	kernel event flags, ...
