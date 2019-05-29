@@ -74,7 +74,8 @@
  *   System Includes
  */
 #define 	 PORTABLE_C
-#include	<asf.h>
+#include 	<avr/io.h>
+#include	<avr/sleep.h>
 #include	"pico.h"
 #include	"portable.h"
 /*
@@ -107,7 +108,6 @@
  *
  *   Prototypes
  */
-void SysTick_Handler(void);
 /*
  ********************************************************************
  *
@@ -119,15 +119,6 @@ void SysTick_Handler(void);
  *   Module Data
  */
 static uint16_t		one_sec_prescale;
-
-#define SYSTICK_RELOAD		(CPU_CLOCK_HZ/SYSTICKHZ)
-#define NVIC_SYSTICK_CTRL   ((volatile unsigned long *) 0xe000e010)
-#define NVIC_SYSTICK_LOAD   ((volatile unsigned long *) 0xe000e014)
-#define NVIC_SYSTICK_VAL	((volatile unsigned long *) 0xe000e018)
-#define NVIC_SYSTICK_CLK    0x00000004
-#define NVIC_SYSTICK_INT    0x00000002
-#define NVIC_SYSTICK_ENABLE 0x00000001
-#define cpu_us_2_cy(us)		(uint32_t)(us * (CPU_CLOCK_HZ/1000000))
 
 /********************************************************************
  *  DESC
@@ -150,8 +141,12 @@ os_tick_init( void )
      *	interrupt at the requested rate.
      *			and start it.
      */
-	*(NVIC_SYSTICK_LOAD) = (system_cpu_clock_get_hz() / SYSTICKHZ) - 1UL;
-	*(NVIC_SYSTICK_CTRL) = NVIC_SYSTICK_CLK | NVIC_SYSTICK_INT | NVIC_SYSTICK_ENABLE;
+	CCP = CCP_IOREG_gc;
+	CLKCTRL.MCLKCTRLB = ((1 << 1) | 1);
+	CLKCTRL.OSC32KCTRLA = 1;
+	TCB1.CCMP = (CPU_CLOCK_HZ / TICK_RATE_HZ);
+	TCB1.INTCTRL = 1;
+	TCB1.CTRLA = 1;
 }
 
 /********************************************************************
@@ -170,7 +165,7 @@ os_tick_init( void )
 void
 os_sleep_init( void )
 {
-	system_set_sleepmode(SYSTEM_SLEEPMODE_IDLE_2);
+	set_sleep_mode(SLEEP_MODE_IDLE);
 }
 
 /********************************************************************
@@ -189,7 +184,7 @@ os_sleep_init( void )
 static void
 os_tick_start( void )
 {
-	*(NVIC_SYSTICK_CTRL) |= NVIC_SYSTICK_ENABLE;
+	TCB1.CTRLA = 1;
 }
 
 /********************************************************************
@@ -208,7 +203,7 @@ os_tick_start( void )
 static void
 os_tick_stop( void )
 {
-	*(NVIC_SYSTICK_CTRL) &= ~NVIC_SYSTICK_ENABLE;
+	TCB1.CTRLA = 0;
 }
 
 /********************************************************************
@@ -228,7 +223,11 @@ void
 os_sleep( void )
 {
 	os_tick_stop();
-	system_sleep();
+	cli();
+	sleep_enable();
+	sei();
+	sleep_cpu();
+	sleep_disable();
 	os_tick_start();
 }
 
@@ -248,13 +247,6 @@ os_sleep( void )
 void
 os_delay_us( uint32_t us )
 {
-	uint32_t microseconds = *(NVIC_SYSTICK_VAL) + (cpu_us_2_cy(us) % 1000);
-	while (*(NVIC_SYSTICK_VAL) < microseconds);
-	if (us > 1000)
-	{
-		uint32_t milliseconds = us / 1000;
-		os_delay_ms((uint16_t) milliseconds);
-	}
 }
 
 /********************************************************************
@@ -278,10 +270,28 @@ os_delay_ms( uint16_t ms )
 /********************************************************************
  *  DESC
  *
+ *  ROUTINE NAME:	ClrWdt
+ *
+ *  DESCRIPTION:	trigger the watchdog timer
+ *
+ *  INPUT:			none
+ *
+ *  OUTPUT:			none
+ *
+ *******************************************************************/
+void
+ClrWdt( void )
+{
+	asm volatile ("WDR");
+}
+
+/********************************************************************
+ *  DESC
+ *
  *  ROUTINE NAME:   SysTickHandler
  *
- *  DESCRIPTION:    OS timer interrupt. For the Arm Cortex M we chose 
- *					to use the system tick interrupt.
+ *  DESCRIPTION:    OS timer interrupt. For the ATtiny we chose 
+ *					to use the TCB tick interrupt.
  *
  *  INPUT:			none
  *
@@ -289,21 +299,19 @@ os_delay_ms( uint16_t ms )
  *
  *******************************************************************/
 
-void
-SysTick_Handler(void)
+ISR(TCB1_INT_vect)
 {
-    system_interrupt_enter_critical_section();
-	/*
+    /*
      * clear the interrupt flag
      *	and handle the event
      */
+	TCB1.INTFLAGS |= TCB_CAPT_bm;
     os_timerHook();
     if (0 == --one_sec_prescale)
     {
         one_sec_prescale = SYSTICKHZ;
         os_seconds++;
     }
-	system_interrupt_leave_critical_section();
 }
 /*
  *  END OF portable.c
