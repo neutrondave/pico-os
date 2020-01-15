@@ -109,11 +109,14 @@ struct pt
  * which the protothread runs. All C statements above the PT_BEGIN()
  * invokation will be executed each time the protothread is scheduled.
  *
+ * note: PT_YIELD_FLAG = PT_YIELD_FLAG eliminates compiler warnings
+ * when PT_YIELD isn't used.
+ *
  * \param pt A pointer to the protothread control structure.
  *
  * \hideinitializer
  */
-#define PT_BEGIN(pt) { char PT_YIELD_FLAG = 1; LC_RESUME((pt)->lc)
+#define PT_BEGIN(pt) { char PT_YIELD_FLAG = 1; PT_YIELD_FLAG = PT_YIELD_FLAG; LC_RESUME((pt)->lc)
 
 /**
  * Declare the end of a protothread.
