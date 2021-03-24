@@ -133,7 +133,7 @@
 #define ROM                 	const
 #define rom
 #define Nop()               	asm("NOP");
-#define ClrWdt()				asm("CLRWDT");
+#define clr_wdt()				asm("CLRWDT");
 #define Reset()					asm("RESET");
 #endif
 
@@ -154,7 +154,7 @@
 #define far
 #define FAR
 #define Reset()				SoftReset()
-#define ClrWdt()			(WDTCONSET = _WDTCON_WDTCLR_MASK)
+#define clr_wdt()			(WDTCONSET = _WDTCON_WDTCLR_MASK)
 
 // MPLAB C Compiler for PIC32 MCUs version 1.04 and below don't have a
 // Nop() function. However, version 1.05 has Nop() declared as _nop().

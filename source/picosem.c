@@ -2,27 +2,28 @@
  *
  *  DESC
  *
- *  MODULE NAME:        picosem.c
+ *  MODULE NAME:        picocque.c
  *
  *  AUTHOR:        		Dave Sandler
  *
  *  DESCRIPTION:        This module contains the pico micro-kernel
- *						semaphore services
+ *						queue functions.
  *
  *  EDIT HISTORY:
  *  BASELINE
  *  VERSION     INIT    DESCRIPTION OF CHANGE
  *  --------    ----    ----------------------
- *   06-20-09   DS  	Module creation.
- *   09-27-12   DS  	OS_SemWait rewritten to use protothreads
+ *   04-23-07   DS  	Module creation.
+ *   09-24-12   DS  	clean up. was never used.
+ *   05-21-13   DS  	greatly simplified...
  *
- *  Copyright (c) 2009 - 2016 Dave Sandler
+ *  Copyright (c) 2009 - 2021 Dave Sandler
  *
  *  This file is part of pico.
  *
  *  pico is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU Lesser General Public License 
- *  as published by the Free Software Foundation, either version 3 
+ *  it under the terms of the GNU Lesser General Public License
+ *  as published by the Free Software Foundation, either version 3
  *  of the License, or (at your option) any later version.
  *
  *  pico is distributed in the hope that it will be useful,
@@ -60,118 +61,214 @@
  *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  *  OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  *  SUCH DAMAGE.
- * 
- *******************************************************************/
+ *
+ ********************************************************************
+ *
+ **! \addtogroup pico_api
+ *! @{
+ *
+ ********************************************************************/
 
-/**
- *   \addtogroup pico_sem
- *	  @{
- */
+#define PICOCQ_C
 
-/**
- * \file
- * 	pico kernel semaphore implementation.
- * \author
- * 	Dave Sandler <dsandler3@gmail.com>
- *
- */
-
-#define                 PICOSEM_C
-
-#include				"pico.h"
-#include				"picosem.h"
-
-/**
- *********************************************************************
- *
- * \name OS Semaphore Services
- * @{
- */
-
-/**
- *
- *********************************************************************
- *
- * Initialize a semaphore and make it ready for use. This function
- *	must be called before using the semaphore.
- *
- * \param	sem			pointer to the semaphore
- *
- * \return	none
- *
- */
-void
-os_sem_init( os_sem_t *sem )
-{
-    sem->sem_count = 0;
-    sem->sem_link.next = sem->sem_link.last = (k_list_t *)sem;
-}
-
-/**
- *
- *********************************************************************
- *
- * Signal a semaphore. Increment the semaphore counter. If any
- *	tasks are waiting on the semaphore, resume them.
- *
- * \param	sem			pointer to the semaphore
- *
- * \return	none
- */
-void
-os_sem_signal( os_sem_t *sem )
-{
-    if( sem->sem_link.next != ( k_list_t *)sem )
-        {
-            while( sem->sem_link.next != ( k_list_t *)sem )
-                {
-                    /*
-                     * resume anyone wating on this semaphore
-                     */
-                    os_resume_task( (tcb_entry_t *)sem->sem_link.next );
-                }
-        }
-    /*
-     * bump the counter
-     */
-    sem->sem_count++;
-}
-
-/**
- *
- *********************************************************************
- *
- * OS_SemWait(pt, sem, timeout) - is provided in picosem.h. As the kernel
- *	uses protothreads to implement blocking, the sem wait macro was
- *	included in the header file to be made available for use. This macro
- *	must be used at the top most level of a task. Task execution will
- *	continue if the semaphore was set, or on a timeout. The user must
- *	check for success on resumption.
- *
- * \param	pt			task protothread control structure
- * \param	sem			pointer to the semaphore
- * \param	timeout		time to wait for the semaphore
- *
- * \return  none
- */
-/**
-*
-*********************************************************************
-*
-* Peek at the semaphore count. This is a useful tool to see if the
-*	semaphore has been set without waiting for it.
-*
-* \param	sem			pointer to the semaphore
-*
-* \return	semaphore count value
-*/
-uint8_t
-os_sem_peek( os_sem_t *sem )
-{
-    return(sem->sem_count);
-}
-/** @} */
 /*
- *  END OF picosem.c
+ ********************************************************************
  *
- ********************************************************/
+ *   System Includes
+ */
+
+#include "pico.h"
+#include "picocque.h"
+
+/*
+ ********************************************************************
+ *
+ *   Common Includes
+ */
+
+/*
+ ********************************************************************
+ *
+ *   Board Specific Includes
+ */
+
+/*
+ ********************************************************************
+ *
+ *   Constants
+ */
+
+/*
+ ********************************************************************
+ *
+ *   Program Globals
+ */
+
+/*
+ ********************************************************************
+ *
+ *   Module Globals
+ */
+
+/*
+ ********************************************************************
+ *
+ *   Prototypes
+ */
+// static void increment_index(os_cqueue_t);
+// static void decrement_index(os_cqueue_t);
+/*
+ ********************************************************************
+ *
+ *   Constants
+ */
+
+/**
+ * \brief Helper function to check we need to wrap around the index
+ *			when adding an item to the cq.
+ *
+ * \param cq the cq
+ *
+ * \return void
+ */
+static void cq_increment_index(os_cqueue_t *cq)
+{
+	// see if we need to wrap around
+	if (cq->isfull)
+		cq->tail = (cq->tail + 1) % cq->qsize;
+
+	// adjust indexes
+	cq->head   = (cq->head + 1) % cq->qsize;
+	cq->isfull = (cq->head == cq->tail);
+}
+
+/**
+ * \brief Helper function to decrement current index when removing an item
+ *
+ * \param cq
+ *
+ * \return void
+ */
+static void cq_deccrement_index(os_cqueue_t *cq)
+{
+	cq->isfull = FALSE;						 // no longer full
+	cq->tail   = (cq->tail + 1) % cq->qsize; // wrap around if needed.
+}
+
+/*
+ *********************************************************
+ *
+ *! os_que_init( os_cqueue_t *, size, BUFFER)
+ *!
+ *! \param 		none.
+ *!
+ *!	This function will initialize a queue
+ *!
+ *! \return 	none.
+ */
+void os_cque_init(os_cqueue_t *cq, cq_size_t qsize, uint8_t *buffer)
+{
+	cq->qsize  = qsize;
+	cq->head   = 0;
+	cq->tail   = 0;
+	cq->buff   = buffer;
+	cq->isfull = FALSE;
+}
+
+/*
+ *********************************************************
+ *
+ *! os_que_add( os_queue_t *, q_type_t * )
+ *!
+ *! \param 		none.
+ *!
+ *!	This function will add an item to a queue
+ *!
+ *! \return 	status.
+ */
+uint8_t os_cque_add(os_cqueue_t *cq, cq_type_t *item)
+{
+	if (!os_cque_full(cq))
+	{
+		cq->buff[cq->head] = *item;
+		cq_increment_index(cq);
+		return (Q_SUCCESS);
+	}
+	else
+	{
+		return (Q_FULL);
+	}
+}
+
+/*
+ *********************************************************
+ *
+ *! os_que_remove( os_queue_t *, q_type_t *)
+ *!
+ *! \param 		none.
+ *!
+ *!	This function will remove an item from a queue
+ *!
+ *! \return 	status.
+ */
+uint8_t os_cque_remove(os_cqueue_t *cq, cq_type_t *item)
+{
+	if (!os_cque_empty(cq))
+	{
+		*item = cq->buff[cq->tail];
+		cq_deccrement_index(cq);
+		return (Q_SUCCESS);
+	}
+	else
+	{
+		return (Q_EMPTY);
+	}
+}
+
+/*
+ *********************************************************
+ *
+ *! os_que_peek( os_queue_t *, q_type_t *)
+ *!
+ *! \param 		none.
+ *!
+ *!	extract an item, but leave it on the queue
+ *!
+ *! \return 	status.
+ */
+uint8_t os_cque_peek(os_cqueue_t *cq, cq_type_t *item)
+{
+	if (!os_cque_empty(cq))
+	{
+		*item = cq->buff[cq->tail];
+		return (Q_SUCCESS);
+	}
+	else
+	{
+		return (Q_EMPTY);
+	}
+}
+
+/*
+ *********************************************************
+ *
+ *! os_que_flush( os_queue_t *)
+ *!
+ *! \param 		none.
+ *!
+ *!	This function will flush a queue
+ *!
+ *! \return 	none.
+ */
+void os_cque_flush(os_cqueue_t *cq)
+{
+	cq->tail   = 0;
+	cq->head   = 0;
+	cq->isfull = 0;
+}
+/*
+ * End picoque.c
+ * Close the Doxygen group.
+ *! @}
+ *
+ *********************************************************/

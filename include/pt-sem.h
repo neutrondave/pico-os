@@ -200,7 +200,8 @@ struct pt_sem
  * \hideinitializer
  */
 #define PT_SEM_WAIT(pt, s)	\
-    do {						\
+		do                                     \
+		{                                      \
             PT_WAIT_UNTIL(pt, (s)->count > 0);		\
             --(s)->count;				\
         } while(0)
@@ -225,5 +226,3 @@ struct pt_sem
 #endif /* __PT_SEM_H__ */
 
 /** @} */
-/** @} */
-

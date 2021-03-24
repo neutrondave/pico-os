@@ -14,7 +14,7 @@
  *  ------  -------  ----   ----------------------
  * 4-26-07			 DS	    Creation
  *
- *  Copyright (c) 2009 - 2016 Dave Sandler
+ *  Copyright (c) 2009 - 2021 Dave Sandler
  *
  *  This file is part of pico.
  *
@@ -73,7 +73,7 @@
 	#define	Q_FULL		1
 	#define	Q_EMPTY		2
 
-	typedef uint8_t q_size_t;
+	typedef uint16_t q_size_t;
 	typedef uint8_t q_type_t;
 
 	/*
@@ -105,7 +105,7 @@
 	_SCOPE_ void     os_que_init(os_queue_t *, q_size_t, q_type_t *);
 	_SCOPE_ uint8_t  os_que_add(os_queue_t *, q_type_t *);
 	_SCOPE_ q_size_t os_que_putarray(os_queue_t *, q_type_t *, q_size_t);
-	_SCOPE_ uint8_t  os_que_putstring(os_queue_t *, q_type_t *);
+	_SCOPE_ q_size_t os_que_putstring(os_queue_t *, q_type_t *);
 	_SCOPE_ uint8_t  os_que_remove(os_queue_t *, q_type_t *);
 	_SCOPE_ uint8_t  os_que_peek(os_queue_t *, q_type_t *);
 	_SCOPE_ void     os_que_flush(os_queue_t *);

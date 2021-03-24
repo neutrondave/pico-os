@@ -27,13 +27,13 @@
  *   09-28-12   DS  	doxygen documentation support
  *   05-30-13   DS  	fix os_tick_delay(). immediate fall through meant no delay.
  *
- *  Copyright (c) 2009 - 2016 Dave Sandler
+ *  Copyright (c) 2009 - 2021 Dave Sandler
  *
  *  This file is part of pico.
  *
  *  pico is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU Lesser General Public License 
- *  as published by the Free Software Foundation, either version 3 
+ *  it under the terms of the GNU Lesser General Public License
+ *  as published by the Free Software Foundation, either version 3
  *  of the License, or (at your option) any later version.
  *
  *  pico is distributed in the hope that it will be useful,
@@ -198,8 +198,7 @@ extern void	os_tick_init(void);
  \endcode
  *
  */
-void
-os_start_sched( void )
+void os_start_sched(void)
 {
     FOREVER
     {
@@ -245,14 +244,17 @@ os_start_sched( void )
     \endcode
  *
  */
-void
-os_init( void )
+void os_init(void)
 {
     uint8_t index = 0;
     /*
      * initialize the target's tick hardware
      */
     os_tick_init();
+#if (PICO_USE_WDT)
+	os_wdt_init();
+#endif
+	os_sleep_init();
     k_ready_list.next = k_ready_list.last = &k_ready_list;
     k_wait_list.next  = k_wait_list.last  = &k_wait_list;
     k_thook_list	  = (t_hook_entry_t *)SL_NULL;
@@ -261,8 +263,7 @@ os_init( void )
     do
     {
         os_release_tcb(&tcb[index]);
-    }
-    while ( ++index < N_TASKS );
+	} while (++index < N_TASKS);
 }
 /* @} */
 /**
@@ -311,8 +312,7 @@ os_init( void )
  \endcode
  *
  */
-tcb_entry_t *
-os_create_task(uint8_t prio, uint8_t env, int (*pr_addr)(tcb_pt_t *))
+tcb_entry_t *os_create_task(uint8_t prio, uint8_t env, int (*pr_addr)(tcb_pt_t *))
 {
     tcb_entry_t *handle;
     handle = os_get_tcb();
@@ -370,8 +370,7 @@ os_create_task(uint8_t prio, uint8_t env, int (*pr_addr)(tcb_pt_t *))
  \endcode
  *
  */
-void
-os_resume_task( tcb_entry_t *tcbp )
+void os_resume_task(tcb_entry_t *tcbp)
 {
     tcb_entry_t *pReadyList;
     /*
@@ -421,8 +420,7 @@ os_resume_task( tcb_entry_t *tcbp )
  \endcode
  *
  */
-void
-os_kill_task( tcb_entry_t *tcbp )
+void os_kill_task(tcb_entry_t *tcbp)
 {
     kq_ndelete((k_list_t *)tcbp);
 }
@@ -462,8 +460,7 @@ os_kill_task( tcb_entry_t *tcbp )
  \endcode
  *
  */
-void
-os_suspend_task( k_list_t *queue, k_list_t *node )
+void os_suspend_task(k_list_t *queue, k_list_t *node)
 {
     /*
      * remove the task from any queue it's on
@@ -485,8 +482,7 @@ os_suspend_task( k_list_t *queue, k_list_t *node )
  *
  * \return 	tcb_entry_t *; NULL if none available
  */
-tcb_entry_t *
-os_get_tcb( void )
+tcb_entry_t *os_get_tcb(void)
 {
     uint8_t index = 0;
     do
@@ -496,8 +492,7 @@ os_get_tcb( void )
             tcb[index].flags &= ~TCB_FREE;
             return( &tcb[index] );
         }
-    }
-    while ( ++index < N_TASKS );
+	} while (++index < N_TASKS);
     return((tcb_entry_t *)Q_NULL );
 }
 
@@ -513,15 +508,90 @@ os_get_tcb( void )
  *
  * \return 	none
  */
-void
-os_release_tcb( tcb_entry_t *tcbp )
+void os_release_tcb(tcb_entry_t *tcbp)
 {
+	os_kill_task(tcbp);
     tcbp->tcb_link.next = (k_list_t *)tcbp;
     tcbp->tcb_link.last = (k_list_t *)tcbp;
     tcbp->timer        =  0;
     tcbp->gptimer      =  0;
     tcbp->flags        = (TCB_FREE | PRIOMASK);
     tcbp->task_env     =  0;
+}
+
+/**
+ *
+ *********************************************************************
+ *
+ * Get a 'handle' for the selected task
+ *
+ * \param pr_addr	task function pointer
+ *
+ * \return 	 		pointer to the tcb; NULL if none available
+ *
+ * The following example illustrates getting a handle for a particular task
+ *
+ *	NOTE: The scheduler must have been initialized first.
+ *
+ \code
+ #include pico.h
+
+ int someTask(tcb_pt_t *);
+
+ void
+ anyfunc(void)
+ {
+	tcb_entry_t t_handle = os_get_task_handle(someTask);
+	if ((tcb_pt_t *)NULL != t_handle){
+		we have a good handle
+	}
+	else {
+		handle the error if required here...
+	}
+}
+ \endcode
+ *
+ */
+tcb_entry_t *os_get_task_handle(int (*pr_addr)(tcb_pt_t *))
+{
+	uint8_t index = 0;
+	do
+	{
+		if (TCB_FREE != (tcb[index].flags & TCB_FREE))
+		{
+			if (tcb[index].p_thread == pr_addr)
+			{
+				return (&tcb[index]);
+			}
+		}
+	} while (++index < N_TASKS);
+	return ((tcb_entry_t *)Q_NULL);
+}
+
+/**
+ *
+ *********************************************************************
+ *
+ * Return a fletcher 16 checksum for the given data block. This is a useful
+ *	function generally, and can provide results approximating a 16 bit CRC.
+ *
+ * \param 	buf		pointer to the data block
+ * \param 	len		length of the data block
+ *
+ * \return 	16 bit Fletcher's checksum
+ */
+uint16_t calc_fletcher16(uint8_t const *buf, uint16_t len)
+{
+	uint16_t sum1 = 0;
+	uint16_t sum2 = 0;
+	uint16_t index;
+
+	for (index = 0; index < len; index++)
+	{
+		sum1 = (sum1 + buf[index]) % 255;
+		sum2 = (sum1 + sum2) % 255;
+	}
+	return ((sum2 << 8) | sum1);
 }
 
 /**
@@ -537,8 +607,7 @@ os_release_tcb( tcb_entry_t *tcbp )
  *
  * \return	none
  */
-void
-os_add_timerhook( t_hook_entry_t *node, void (*tfun_addr)(void) )
+void os_add_timerhook(t_hook_entry_t *node, void (*tfun_addr)(void))
 {
     os_add_hook((t_hook_entry_t *)&k_thook_list, node, tfun_addr);
 }
@@ -560,8 +629,7 @@ os_add_timerhook( t_hook_entry_t *node, void (*tfun_addr)(void) )
  *
  * \return	none
  */
-void
-os_add_schedhook( t_hook_entry_t *node, void (*tfun_addr)(void) )
+void os_add_schedhook(t_hook_entry_t *node, void (*tfun_addr)(void))
 {
     os_add_hook((t_hook_entry_t *)&k_loop_list, node, tfun_addr);
 }
@@ -578,8 +646,7 @@ os_add_schedhook( t_hook_entry_t *node, void (*tfun_addr)(void) )
  *
  * \return	none
  */
-void
-os_add_hook( t_hook_entry_t *list, t_hook_entry_t *node, void (*tfun_addr)(void) )
+void os_add_hook(t_hook_entry_t *list, t_hook_entry_t *node, void (*tfun_addr)(void))
 {
     node->p_timerhook  = tfun_addr;
     kq_slinsert((k_slist_t *)list, (k_slist_t *)node);
@@ -597,8 +664,7 @@ os_add_hook( t_hook_entry_t *list, t_hook_entry_t *node, void (*tfun_addr)(void)
  *
  * \return 	none
  */
-void
-os_release_timerhook( t_hook_entry_t *node )
+void os_release_timerhook(t_hook_entry_t *node)
 {
     os_release_hook((t_hook_entry_t *)&k_thook_list, node);
 }
@@ -615,8 +681,7 @@ os_release_timerhook( t_hook_entry_t *node )
  *
  * \return	none
  */
-void
-os_release_schedhook( t_hook_entry_t *node )
+void os_release_schedhook(t_hook_entry_t *node)
 {
     os_release_hook((t_hook_entry_t *)&k_loop_list, node);
 }
@@ -632,8 +697,7 @@ os_release_schedhook( t_hook_entry_t *node )
  *
  * \return	none
  */
-void
-os_release_hook( t_hook_entry_t *list, t_hook_entry_t *node )
+void os_release_hook(t_hook_entry_t *list, t_hook_entry_t *node)
 {
     kq_slndelete((k_slist_t *)list, (k_slist_t *)node);
 }
@@ -650,8 +714,7 @@ os_release_hook( t_hook_entry_t *list, t_hook_entry_t *node )
  *
  * \return 	none
  */
-void
-kq_qinsert( k_list_t *queue, k_list_t *node )
+void kq_qinsert(k_list_t *queue, k_list_t *node)
 {
     node->next 		   = queue->next;
     node->last 		   = queue;
@@ -672,8 +735,7 @@ kq_qinsert( k_list_t *queue, k_list_t *node )
  *
  * \return 	deleted node; NULL if none
  */
-k_list_t *
-kq_qdelete( k_list_t *queue )
+k_list_t *kq_qdelete(k_list_t *queue)
 {
     k_list_t *node;		/* the deleted node */
     if (queue->next == queue )
@@ -697,8 +759,7 @@ kq_qdelete( k_list_t *queue )
  *
  * \return 	none
  */
-void
-kq_ndelete( k_list_t *node )
+void kq_ndelete(k_list_t *node)
 {
     k_list_t *next_node;
     k_list_t *last_node;
@@ -722,8 +783,7 @@ kq_ndelete( k_list_t *node )
  *
  * \return 	none
  */
-void
-kq_slinsert( k_slist_t *s_list, k_slist_t *node )
+void kq_slinsert(k_slist_t *s_list, k_slist_t *node)
 {
     node->next 	 = s_list->next;
     s_list->next = node;
@@ -741,8 +801,7 @@ kq_slinsert( k_slist_t *s_list, k_slist_t *node )
  *
  * \return 	the deleted node; NULL if none
  */
-k_slist_t *
-kq_sldelete( k_slist_t *s_list )
+k_slist_t *kq_sldelete(k_slist_t *s_list)
 {
     k_slist_t *node;		/* the deleted node */
     node = s_list->next;
@@ -766,8 +825,7 @@ kq_sldelete( k_slist_t *s_list )
  *
  * \return 	none
  */
-void
-kq_slndelete( k_slist_t *s_list, k_slist_t *node )
+void kq_slndelete(k_slist_t *s_list, k_slist_t *node)
 {
     k_slist_t *next_node;
     for((next_node = s_list->next); (SL_NULL != next_node); (next_node = s_list->next))
@@ -801,8 +859,7 @@ kq_slndelete( k_slist_t *s_list, k_slist_t *node )
  * \return 	none
  */
 
-void
-os_delay( tcb_entry_t *task, timer_t delay )
+void os_delay(tcb_entry_t *task, timer_t delay)
 {
     /*
      * remove the task from any queue it's on
@@ -826,17 +883,15 @@ os_delay( tcb_entry_t *task, timer_t delay )
  *
  * \return 	none
  */
-void
-os_tick_delay( uint16_t delay )
+void os_tick_delay(uint16_t delay)
 {
     timer_t		temp_tick;
     temp_tick = current_tick + delay;
     temp_tick += 1;
     do
     {
-        ClrWdt();
-    }
-    while(temp_tick != current_tick);
+		clr_wdt();
+	} while (temp_tick != current_tick);
 }
 
 /**
@@ -851,8 +906,7 @@ os_tick_delay( uint16_t delay )
  *
  * \return 	none
  */
-void
-os_timerHook( void )
+void os_timerHook(void)
 {
     ++current_tick;
     os_hook_handler(k_thook_list);
@@ -870,8 +924,7 @@ os_timerHook( void )
  *
  * \return 	none
  */
-void
-os_hook_handler( t_hook_entry_t *hooks )
+void os_hook_handler(t_hook_entry_t *hooks)
 {
     for(; SL_NULL != (k_slist_t *)hooks ; hooks = (t_hook_entry_t *)hooks->t_hook_link.next)
     {
@@ -885,16 +938,37 @@ os_hook_handler( t_hook_entry_t *hooks )
  *
  * calculate the time elapsed since the last call
  *
- * \param	hooks		pointer to the last tick count captured
+ * \param	pointer to the last tick count captured
  *
  * \return 	number of ticks elapsed
  */
-timer_t  
-os_get_elapsed_time( timer_t *last )
+timer_t os_get_elapsed_time(timer_t *last)
 {
     timer_t retval = (get_os_ticks() - *last);
     *last = get_os_ticks();
 	return (retval);
+}
+
+/**
+ *
+ *********************************************************************
+ *
+ * update a timer given the elapsed time
+ *
+ * \param	pointer to the timer, elapsed time
+ *
+ * \return 	none
+ */
+void os_update_timer(timer_t *timer, timer_t elapsed_time)
+{
+	if (elapsed_time >= *timer)
+	{
+		*timer = 0;
+	}
+	else
+	{
+		*timer -= elapsed_time;
+	}
 }
 
 /**
@@ -918,14 +992,14 @@ os_get_elapsed_time( timer_t *last )
  *
  * \return 	none
  */
-void
-service_os_timers( void )
+void service_os_timers(void)
 {
     uint8_t tcb_index;
 	timer_t elapsed_time = os_get_elapsed_time(&last_tick);
 
     if (0 != elapsed_time)
     {
+		clr_wdt();
         #ifdef USES_UIP
            if ( uip_timer > elapsed_time )
            {

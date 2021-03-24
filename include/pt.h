@@ -116,7 +116,11 @@ struct pt
  *
  * \hideinitializer
  */
-#define PT_BEGIN(pt) { char PT_YIELD_FLAG = 1; PT_YIELD_FLAG = PT_YIELD_FLAG; LC_RESUME((pt)->lc)
+	#define PT_BEGIN(pt)                        \
+		{                                       \
+			char PT_YIELD_FLAG = 1;             \
+			PT_YIELD_FLAG	   = PT_YIELD_FLAG; \
+			LC_RESUME((pt)->lc)
 
 /**
  * Declare the end of a protothread.
@@ -128,8 +132,12 @@ struct pt
  *
  * \hideinitializer
  */
-#define PT_END(pt) LC_END((pt)->lc); PT_YIELD_FLAG = 0; \
-    PT_INIT(pt); return PT_ENDED; }
+	#define PT_END(pt)     \
+		LC_END((pt)->lc);  \
+		PT_YIELD_FLAG = 0; \
+		PT_INIT(pt);       \
+		return PT_ENDED;   \
+		}
 
 /** @} */
 
@@ -150,9 +158,11 @@ struct pt
  * \hideinitializer
  */
 #define PT_WAIT_UNTIL(pt, condition) \
-    do {								 \
+		do                               \
+		{                                \
             LC_SET((pt)->lc);				 \
-            if(!(condition)) {				 \
+			if (!(condition))            \
+			{                            \
                     return PT_WAITING;			 \
                 }								 \
         } while(0)
@@ -167,6 +177,30 @@ struct pt
  *
  * This macro blocks the protothread until the specified condition is
  * true. It uses the task timing functions of pico to set the
+	 * condition test polling rate.
+	 *
+	 * \param pt A pointer to the protothread control structure.
+	 * \param condition The condition.
+	 * \param rate The polling rate.
+	 *
+	 * \hideinitializer
+	 */
+	#define PT_WAIT(pt, condition, rate) \
+		do                               \
+		{                                \
+			LC_SET((pt)->lc);            \
+			if (!(condition))            \
+			{                            \
+				os_delay(ME, rate);      \
+				return PT_WAITING;       \
+			}                            \
+		} while (0)
+
+	/**
+	 * Block and wait with timeout until condition is true.
+	 *
+	 * This macro blocks the protothread until the specified condition is
+	 * true. It uses the task timing functions of pico to set the
  * condition test polling rate as well as the timeout.
  *
  * \param pt A pointer to the protothread control structure.
@@ -176,10 +210,12 @@ struct pt
  * \hideinitializer
  */
 #define PT_WAIT_TO(pt, condition, timeout, rate)\
-    do {											\
+		do                                               \
+		{                                                \
             setgptimer(ME, timeout);					\
             LC_SET((pt)->lc);							\
-            if(!(condition) && !(gp_timer_expired(ME))) {	\
+			if (!(condition) && !(gp_timer_expired(ME))) \
+			{                                            \
                     os_delay(ME, rate);						\
                     return PT_WAITING;						\
                 }											\
@@ -204,8 +240,9 @@ struct pt
  * \hideinitializer
  */
 
-
-#define PT_DELAY(pt, delay) 	os_delay(ME, delay); PT_WAIT_UNTIL(pt, task_timer_expired(ME));
+	#define PT_DELAY(pt, delay) \
+		os_delay(ME, delay);    \
+		PT_WAIT_UNTIL(pt, task_timer_expired(ME));
 
 /**
  * Block and wait while condition is true.
@@ -258,7 +295,8 @@ struct pt
  * \hideinitializer
  */
 #define PT_SPAWN(pt, child, thread)		\
-    do {						\
+		do                                  \
+		{                                   \
             PT_INIT((child));				\
             PT_WAIT_THREAD((pt), (thread));		\
         } while(0)
@@ -281,7 +319,8 @@ struct pt
  * \hideinitializer
  */
 #define PT_RESTART(pt)				\
-    do {						\
+		do                     \
+		{                      \
             PT_INIT(pt);				\
             return PT_WAITING;			\
         } while(0)
@@ -298,7 +337,8 @@ struct pt
  * \hideinitializer
  */
 #define PT_EXIT(pt)				\
-    do {						\
+		do                    \
+		{                     \
             PT_INIT(pt);				\
             return PT_EXITED;			\
         } while(0)
@@ -342,10 +382,12 @@ struct pt
  * \hideinitializer
  */
 #define PT_YIELD(pt)				\
-    do {						\
+		do                          \
+		{                           \
             PT_YIELD_FLAG = 0;				\
             LC_SET((pt)->lc);				\
-            if(PT_YIELD_FLAG == 0) {			\
+			if (PT_YIELD_FLAG == 0) \
+			{                       \
                     return PT_YIELDED;			\
                 }						\
         } while(0)
@@ -362,10 +404,12 @@ struct pt
  * \hideinitializer
  */
 #define PT_YIELD_UNTIL(pt, cond)		\
-    do {						\
+		do                                       \
+		{                                        \
             PT_YIELD_FLAG = 0;				\
             LC_SET((pt)->lc);				\
-            if((PT_YIELD_FLAG == 0) || !(cond)) {	\
+			if ((PT_YIELD_FLAG == 0) || !(cond)) \
+			{                                    \
                     return PT_YIELDED;			\
                 }						\
         } while(0)

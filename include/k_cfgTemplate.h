@@ -13,7 +13,7 @@
  *  DATE    VERSION  INIT   DESCRIPTION OF CHANGE
  *  ------  -------  ----   ----------------------
  *
- *  Copyright (c) 2009 - 2016 Dave Sandler
+ *  Copyright (c) 2009 - 2021 Dave Sandler
  *
  *  This file is part of pico.
  *
@@ -61,25 +61,23 @@
  *******************************************************************/
 
 #ifndef	_K_CONFIG_H
-#define	_K_CONFIG_H
+	#define	_K_CONFIG_H
 
-/*
- * tcb related stuff
- */
-#define N_TASKS         	8
+	/*
+	 * tcb related stuff
+	 */
+	#define N_TASKS         	8
 
-#define	CPU_CLOCK_HZ		((uint32_t)50000000)
-#define	TICK_RATE_HZ		((uint32_t) 100)
-#define BYTE_ALIGNMENT  	4
-#define	T_STK_SZE_MIN		(128 * 4)
+	#define	CPU_CLOCK_HZ		((uint32_t)50000000)
+	#define	TICK_RATE_HZ		((uint32_t) 100)
+	#define BYTE_ALIGNMENT  	4
+	#define	T_STK_SZE_MIN		(128 * 4)
 
-#define	T_ONE_SEC			((uint32_t)TICK_RATE_HZ)
-#define	T_ONE_MS			((uint32_t)(1000 / TICK_RATE_HZ))
+	#define	T_ONE_SEC			((uint32_t)TICK_RATE_HZ)
+	#define	T_ONE_MS			((uint32_t)(1000 / TICK_RATE_HZ))
 
-#include	"board_cfg.h"
-
+	#include	"board_cfg.h"
 #endif /* safety check for duplicate .h file */
-
 /*
  *  END OF k_cfg.h
  *

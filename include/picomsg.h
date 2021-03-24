@@ -14,7 +14,7 @@
  *  ------  -------  ----   ----------------------
  *	09-28-12 		DAS		modified to use protothreads
  *
- *  Copyright (c) 2009 - 2016 Dave Sandler
+ *  Copyright (c) 2009 - 2021 Dave Sandler
  *
  *  This file is part of pico.
  *
@@ -88,10 +88,10 @@
 	/*
 	 *********************************************************
 	 *
-	 * void OS_MsgReceive(pt,*MBox,*Msg,timeout)
+	 * void os_msg_receive(pt,*mbox,*msg,timeout)
 	 *	wait for a message
 	 */
-	#define OS_MsgReceive( pt, mbox, msg, timeout )						\
+	#define os_msg_receive(pt, mbox, msg, timeout)                      \
 	    do																\
 	    {																\
 	            os_delay(ME, timeout);									\
@@ -101,13 +101,12 @@
 	                os_suspend((k_list_t *)&mbox->mbox_sem);				\
 	                return PT_WAITING;									\
 	            }														\
-	    }																\
-	    while(0);														\
+		} while (0);                                                    \
 	    if (sem.sem_count)												\
 	    {																\
 	        sem.sem_count--;												\
 	        msg = (os_msg_t *)kq_qdelete((k_list_t *)mbox)  				\
-	    }																\
+		}
 	           
 	/*
 	 *	Messaging related API services

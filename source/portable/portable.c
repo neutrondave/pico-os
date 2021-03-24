@@ -127,7 +127,6 @@ static uint16_t		one_sec_prescale;
 #define NVIC_SYSTICK_CLK    0x00000004
 #define NVIC_SYSTICK_INT    0x00000002
 #define NVIC_SYSTICK_ENABLE 0x00000001
-#define cpu_us_2_cy(us)		(uint32_t)(us * (CPU_CLOCK_HZ/1000000))
 
 /********************************************************************
  *  DESC
@@ -142,8 +141,7 @@ static uint16_t		one_sec_prescale;
  *
  *******************************************************************/
 
-void
-os_tick_init( void )
+void os_tick_init(void)
 {
 	/*
      * Configure SysTick to
@@ -152,6 +150,110 @@ os_tick_init( void )
      */
 	*(NVIC_SYSTICK_LOAD) = (system_cpu_clock_get_hz() / SYSTICKHZ) - 1UL;
 	*(NVIC_SYSTICK_CTRL) = NVIC_SYSTICK_CLK | NVIC_SYSTICK_INT | NVIC_SYSTICK_ENABLE;
+}
+
+/********************************************************************
+ *  DESC
+ *
+ *  ROUTINE NAME:
+ *
+ *  DESCRIPTION:
+ *
+ *  INPUT:
+ *
+ *  OUTPUT:
+ *
+ *******************************************************************/
+
+void os_wdt_init(void)
+{
+	struct wdt_conf config;
+	wdt_get_config_defaults(&config);
+	wdt_set_config(&config);
+}
+
+/********************************************************************
+ *  DESC
+ *
+ *  ROUTINE NAME:
+ *
+ *  DESCRIPTION:
+ *
+ *  INPUT:
+ *
+ *  OUTPUT:
+ *
+ *******************************************************************/
+
+void os_sleep_init(void)
+{
+	system_set_sleepmode(SYSTEM_SLEEPMODE_STANDBY);
+}
+
+/********************************************************************
+ *  DESC
+ *
+ *  ROUTINE NAME:
+ *
+ *  DESCRIPTION:
+ *
+ *  INPUT:
+ *
+ *  OUTPUT:
+ *
+ *******************************************************************/
+
+static void os_tick_start(void)
+{
+	*(NVIC_SYSTICK_CTRL) = NVIC_SYSTICK_CLK | NVIC_SYSTICK_INT | NVIC_SYSTICK_ENABLE;
+}
+
+/********************************************************************
+ *  DESC
+ *
+ *  ROUTINE NAME:
+ *
+ *  DESCRIPTION:
+ *
+ *  INPUT:
+ *
+ *  OUTPUT:
+ *
+ *******************************************************************/
+
+static void os_tick_stop(void)
+{
+	*(NVIC_SYSTICK_CTRL) = 0;
+}
+
+/********************************************************************
+ *  DESC
+ *
+ *  ROUTINE NAME:
+ *
+ *  DESCRIPTION:
+ *
+ *  INPUT:
+ *
+ *  OUTPUT:
+ *
+ *******************************************************************/
+
+void os_sleep(void)
+{
+	struct wdt_conf config;
+	bool			wd_enable;
+
+	os_tick_stop();
+	wdt_get_config_defaults(&config);
+	wd_enable	  = config.enable;
+	config.enable = false;
+	wdt_set_config(&config);
+
+	system_sleep();
+	wdt_get_config_defaults(&config);
+	config.enable = wd_enable;
+	os_tick_start();
 }
 
 /********************************************************************
@@ -167,16 +269,9 @@ os_tick_init( void )
  *
  *******************************************************************/
 
-void
-os_delay_us( uint32_t us )
+void os_delay_us(uint32_t us)
 {
-	uint32_t microseconds = *(NVIC_SYSTICK_VAL) + (cpu_us_2_cy(us) % 1000);
-	while (*(NVIC_SYSTICK_VAL) < microseconds);
-	if (us > 1000)
-	{
-		uint32_t milliseconds = us / 1000;
-		os_delay_ms((uint16_t) milliseconds);
-	}
+	cpu_delay_us(us);
 }
 
 /********************************************************************
@@ -191,8 +286,7 @@ os_delay_us( uint32_t us )
  *  OUTPUT:			none
  *
  *******************************************************************/
-void
-os_delay_ms( uint16_t ms )
+void os_delay_ms(uint16_t ms)
 {
 	os_tick_delay(ms);
 }
@@ -211,8 +305,7 @@ os_delay_ms( uint16_t ms )
  *
  *******************************************************************/
 
-void
-SysTick_Handler(void)
+void SysTick_Handler(void)
 {
     system_interrupt_enter_critical_section();
 	/*

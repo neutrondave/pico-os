@@ -14,10 +14,10 @@
  *  VERSION     INIT    DESCRIPTION OF CHANGE
  *  --------    ----    ----------------------
  *   06-20-09   DS  	Module creation.
- *   09-28-12   DS  	OS_MsgReceive move to picomsg.h in order to
+ *   09-28-12   DS  	os_msg_receive move to picomsg.h in order to
  *						use proto-threads
  *
- *  Copyright (c) 2009 - 2016 Dave Sandler
+ *  Copyright (c) 2009 - 2021 Dave Sandler
  *
  *  This file is part of pico.
  *
@@ -72,39 +72,36 @@
 /*
  *********************************************************
  *
- * void os_mbox_init(  os_mail_t *MBox  )
+ * void os_mbox_init(  os_mail_t *mbox  )
  *	initialize a Mailbox
  */
-void
-os_mbox_init( os_mail_t *MBox )
+void os_mbox_init(os_mail_t *mbox)
 {
-    os_sem_init( &MBox->mbox_sem );
-    MBox->msg_queue.next = MBox->msg_queue.last = (k_list_t *)MBox;
+	os_sem_init(&mbox->mbox_sem);
+	mbox->msg_queue.next = mbox->msg_queue.last = (k_list_t *)mbox;
 }
 
 /*
  *********************************************************
  *
- * void os_msg_init(  os_msg_t *Msg  )
+ * void os_msg_init(  os_msg_t *msg  )
  *	initialize pointers in a message record
  */
-void
-os_msg_init( os_msg_t *Msg )
+void os_msg_init(os_msg_t *msg)
 {
-    Msg->msg_list.next = Msg->msg_list.last = (k_list_t *)Msg;
+	msg->msg_list.next = msg->msg_list.last = (k_list_t *)msg;
 }
 
 /*
  *********************************************************
  *
- * void os_msg_send(  os_msg_t *Msg, os_mail_t *MBox, os_mail_t *reply  )
+ * void os_msg_send(  os_msg_t *msg, os_mail_t *mbox, os_mail_t *reply  )
  *	send a message
  */
-void
-os_msg_send( os_msg_t *Msg, os_mail_t *MBox )
+void os_msg_send(os_msg_t *msg, os_mail_t *mbox)
 {
-    kq_qinsert( (k_list_t *)MBox, (k_list_t *)Msg );
-    os_sem_signal( &MBox->mbox_sem );
+	kq_qinsert((k_list_t *)mbox, (k_list_t *)msg);
+	os_sem_signal(&mbox->mbox_sem);
 }
 
 /*

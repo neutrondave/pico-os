@@ -26,102 +26,95 @@
 //*****************************************************************************
 
 #ifndef __USTDLIB_H__
-#define __USTDLIB_H__
+	#define __USTDLIB_H__
+	#include <stdarg.h>
 
-#include <stdarg.h>
+	//*****************************************************************************
+	//
+	// If building with a C++ compiler, make all of the definitions in this header
+	// have a C binding.
+	//
+	//*****************************************************************************
+	#ifdef __cplusplus
+		extern "C" {
+	#endif
 
-//*****************************************************************************
-//
-// If building with a C++ compiler, make all of the definitions in this header
-// have a C binding.
-//
-//*****************************************************************************
-#ifdef __cplusplus
-extern "C"
-{
-#endif
+	//*****************************************************************************
+	//
+	//! \addtogroup ustdlib_api
+	//! @{
+	//
+	//*****************************************************************************
 
-//*****************************************************************************
-//
-//! \addtogroup ustdlib_api
-//! @{
-//
-//*****************************************************************************
+	//*****************************************************************************
+	//
+	//! A structure that contains the broken down date and time.
+	//
+	//*****************************************************************************
+		typedef struct
+		{
+			//
+			//! The number of years since 0 AD.
+			//
+			unsigned short usYear;
 
-//*****************************************************************************
-//
-//! A structure that contains the broken down date and time.
-//
-//*****************************************************************************
-    typedef struct
-    {
-        //
-        //! The number of years since 0 AD.
-        //
-        unsigned short usYear;
+			//
+			//! The month, where January is 0 and December is 11.
+			//
+			unsigned char ucMon;
 
-        //
-        //! The month, where January is 0 and December is 11.
-        //
-        unsigned char ucMon;
+			//
+			//! The day of the month.
+			//
+			unsigned char ucMday;
 
-        //
-        //! The day of the month.
-        //
-        unsigned char ucMday;
+			//
+			//! The day of the week, where Sunday is 0 and Saturday is 6.
+			//
+			unsigned char ucWday;
 
-        //
-        //! The day of the week, where Sunday is 0 and Saturday is 6.
-        //
-        unsigned char ucWday;
+			//
+			//! The number of hours.
+			//
+			unsigned char ucHour;
 
-        //
-        //! The number of hours.
-        //
-        unsigned char ucHour;
+			//
+			//! The number of minutes.
+			//
+			unsigned char ucMin;
 
-        //
-        //! The number of minutes.
-        //
-        unsigned char ucMin;
+			//
+			//! The number of seconds.
+			//
+			unsigned char ucSec;
+	} tTime;
 
-        //
-        //! The number of seconds.
-        //
-        unsigned char ucSec;
-    }
-    tTime;
+	//*****************************************************************************
+	//
+	// Close the Doxygen group.
+	//! @}
+	//
+	//*****************************************************************************
 
-//*****************************************************************************
-//
-// Close the Doxygen group.
-//! @}
-//
-//*****************************************************************************
+	//*****************************************************************************
+	//
+	// Prototypes for the APIs.
+	//
+	//*****************************************************************************
+	extern int  uvsnprintf(char *pcBuf, unsigned long ulSize, const char *pcString, va_list vaArgP);
+	extern int  usprintf(char *pcBuf, const char *pcString, ...);
+	extern int  usnprintf(char *pcBuf, unsigned long ulSize, const char *pcString, ...);
+	extern void ulocaltime(unsigned long ulTime, tTime *psTime);
+	extern unsigned long ustrtoul(const char *pcStr, const char **ppcStrRet, int iBase);
+	extern char *ustrcpy(char *str1, char *str2);
+	extern char *ustrstr(const char *pcHaystack, const char *pcNeedle);
 
-//*****************************************************************************
-//
-// Prototypes for the APIs.
-//
-//*****************************************************************************
-    extern int uvsnprintf(char *pcBuf, unsigned long ulSize, const char *pcString,
-                          va_list vaArgP);
-    extern int usprintf(char *pcBuf, const char *pcString, ...);
-    extern int usnprintf(char *pcBuf, unsigned long ulSize, const char *pcString,
-                         ...);
-    extern void ulocaltime(unsigned long ulTime, tTime *psTime);
-    extern unsigned long ustrtoul(const char *pcStr, const char **ppcStrRet,
-                                  int iBase);
-    extern char *ustrcpy(char *str1, char *str2);
-    extern char *ustrstr(const char *pcHaystack, const char *pcNeedle);
-
-//*****************************************************************************
-//
-// Mark the end of the C bindings section for C++ compilers.
-//
-//*****************************************************************************
-#ifdef __cplusplus
-}
-#endif
-
+	//*****************************************************************************
+	//
+	// Mark the end of the C bindings section for C++ compilers.
+	//
+	//*****************************************************************************
+	#ifdef __cplusplus
+		}
+	#endif
 #endif // __USTDLIB_H__

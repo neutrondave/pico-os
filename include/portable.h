@@ -16,7 +16,7 @@
  * 9-30-10			 DS	    Modify for the PIC32MX and Microchip libs
  * 9-19-12			 DS	    expand core selection switches
  *
- *  Copyright (c) 2009 - 2016 Dave Sandler
+ *  Copyright (c) 2009 - 2021 Dave Sandler
  *
  *  This file is part of pico.
  *
@@ -85,6 +85,7 @@
 		//#include	"cortex_m3.h"
 		//#include	"interrupt.h"
 	#elif defined(CORTEXM0)
+		#include <asf.h>
 	#else
 		#error Unknown processor or compiler.
 	#endif
@@ -120,37 +121,41 @@
 		 * registers.  r0 is clobbered.
 		 */
 		#define SET_INTERRUPT_MASK()	\
-			__asm volatile                  \
-			(								\
-				" mov r0, %0         \n"	\
-				" msr basepri, r0    \n"	\
-				::"i"(configMAX_SYSCALL_INTERRUPT_PRIORITY):"r0"  \
-			)
+			__asm volatile(" mov r0, %0         \n"                                             \
+						   " msr basepri, r0    \n" ::"i"(configMAX_SYSCALL_INTERRUPT_PRIORITY) \
+						   : "r0")
 		/*
 		 * Set basepri back to 0 without effective other registers.
 		 * r0 is clobbered.
 		 */
 		#define CLEAR_INTERRUPT_MASK()		\
-			__asm volatile                  \
-			(								\
-				" mov r0, #0          \n"	\
-				" msr basepri, r0     \n"	\
-				:::"r0"						\
-			)
+			__asm volatile(" mov r0, #0          \n"    \
+						   " msr basepri, r0     \n" :: \
+							   : "r0")
 
-		#define SET_INTERRUPT_MASK_FROM_ISR()     0;SET_INTERRUPT_MASK()
-		#define CLEAR_INTERRUPT_MASK_FROM_ISR(x)  CLEAR_INTERRUPT_MASK();(void)x
+		#define SET_INTERRUPT_MASK_FROM_ISR() \
+			0;                                \
+			SET_INTERRUPT_MASK()
+		#define CLEAR_INTERRUPT_MASK_FROM_ISR(x) \
+			CLEAR_INTERRUPT_MASK();              \
+			(void)x
 		#define DI()	SET_INTERRUPT_MASK()
 		#define EI()	CLEAR_INTERRUPT_MASK()
-		#define ClrWdt()
+		#define clr_wdt() wdt_reset_count()
 	#endif
 	#define ENTER_CRITICAL()		DI()
 	#define EXIT_CRITICAL()			EI()
 	#define portNOP()
 	#ifdef PORTABLE_C
 		void os_tick_init(void);
+		void os_wdt_init(void);
+		void os_sleep_init(void);
+		void os_sleep(void);
 	#else
 		extern void os_tick_init(void);
+		extern void os_wdt_init(void);
+		extern void os_sleep_init(void);
+		extern void os_sleep(void);
 	#endif
 
 	#ifdef	CORTEXM3
@@ -159,29 +164,27 @@
 		 * registers.  r0 is clobbered.
 		 */
 		#define SET_INTERRUPT_MASK()	\
-			__asm volatile                  \
-			(								\
-				" mov r0, %0         \n"	\
-				" msr basepri, r0    \n"	\
-				::"i"(configMAX_SYSCALL_INTERRUPT_PRIORITY):"r0"  \
-			)
+			__asm volatile(" mov r0, %0         \n"                                             \
+						   " msr basepri, r0    \n" ::"i"(configMAX_SYSCALL_INTERRUPT_PRIORITY) \
+						   : "r0")
 		/*
 		 * Set basepri back to 0 without effective other registers.
 		 * r0 is clobbered.
 		 */
 		#define CLEAR_INTERRUPT_MASK()		\
-			__asm volatile                  \
-			(								\
-				" mov r0, #0          \n"	\
-				" msr basepri, r0     \n"	\
-				:::"r0"						\
-			)
+			__asm volatile(" mov r0, #0          \n"    \
+						   " msr basepri, r0     \n" :: \
+							   : "r0")
 
-		#define SET_INTERRUPT_MASK_FROM_ISR()     0;SET_INTERRUPT_MASK()
-		#define CLEAR_INTERRUPT_MASK_FROM_ISR(x)  CLEAR_INTERRUPT_MASK();(void)x
+		#define SET_INTERRUPT_MASK_FROM_ISR() \
+			0;                                \
+			SET_INTERRUPT_MASK()
+		#define CLEAR_INTERRUPT_MASK_FROM_ISR(x) \
+			CLEAR_INTERRUPT_MASK();              \
+			(void)x
 		#define DI()	SET_INTERRUPT_MASK()
 		#define EI()	CLEAR_INTERRUPT_MASK()
-		#define ClrWdt()
+		#define clr_wdt() wdt_reset_count()
 	#endif
 	#define ENTER_CRITICAL()		DI()
 	#define EXIT_CRITICAL()			EI()

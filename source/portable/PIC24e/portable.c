@@ -75,7 +75,7 @@
 #define 	 PORTABLE_C
 #include	"pico.h"
 #include	"portable.h"
-#include    "HardwareProfile.h"
+//#include    "HardwareProfile.h"
 /*
  ********************************************************************
  *
@@ -137,7 +137,6 @@ static uint16_t     one_sec_prescale;
 extern tcb_entry_t  *current_task;
 extern k_list_t     k_ready_list, k_wait_list;
 extern tcb_entry_t  tcb[N_TASKS];
-extern timer_t      current_tick;
 extern timer_t      last_tick;
 
 #define SYS_FREQ    CPU_CLOCK_HZ
@@ -157,8 +156,43 @@ extern timer_t      last_tick;
  *
  *******************************************************************/
 
-void
-os_tick_init( void )
+static void os_tick_start(void)
+{
+    T1CONbits.TON		= 1;			/* start the timer		*/
+}
+
+/********************************************************************
+ *  DESC
+ *
+ *  ROUTINE NAME:
+ *
+ *  DESCRIPTION:
+ *
+ *  INPUT:
+ *
+ *  OUTPUT:
+ *
+ *******************************************************************/
+
+static void os_tick_stop(void)
+{
+    T1CONbits.TON		= 0;			/* stop the timer		*/
+}
+
+/********************************************************************
+ *  DESC
+ *
+ *  ROUTINE NAME:
+ *
+ *  DESCRIPTION:
+ *
+ *  INPUT:
+ *
+ *  OUTPUT:
+ *
+ *******************************************************************/
+
+void os_tick_init( void )
 {
     /*
      * Configure SysTick to
@@ -169,16 +203,72 @@ os_tick_init( void )
      * turn off timer 1, clear it, set it,
      *	and turn it on...
      */
-    TMR1  		= 0;			/* clear the timer register 	*/
-    PR1   		= T1_RELOAD;            /* set the prescaler		*/
-    T1CON		= 0;			/* reset the timer control reg	*/
+    TMR1  				= 0;			/* clear the timer register 	*/
+    PR1   				= T1_RELOAD;    /* set the prescaler		*/
+    T1CON				= 0;			/* reset the timer control reg	*/
     T1CONbits.TCKPS0	= 1;			/* div by 8			*/
     T1CONbits.TCKPS1	= 0;			/* "				*/
-    IPC0bits.T1IP	= 4;			/* priority level		*/
-    IFS0bits.T1IF	= 0;			/* clear the interrupt flag	*/
-    IEC0bits.T1IE	= 1;			/* enable the timer interrupt	*/
-    SRbits.IPL	 	= 3;			/* cpu priority levels 4-7	*/
-    T1CONbits.TON	= 1;			/* start the timer		*/
+    IPC0bits.T1IP		= 4;			/* priority level		*/
+    IFS0bits.T1IF		= 0;			/* clear the interrupt flag	*/
+    IEC0bits.T1IE		= 1;			/* enable the timer interrupt	*/
+    SRbits.IPL	 		= 3;			/* cpu priority levels 4-7	*/
+    os_tick_start();
+}
+
+/********************************************************************
+ *  DESC
+ *
+ *  ROUTINE NAME:
+ *
+ *  DESCRIPTION:
+ *
+ *  INPUT:
+ *
+ *  OUTPUT:
+ *
+ *******************************************************************/
+
+void os_wdt_init(void)
+{
+}
+
+/********************************************************************
+ *  DESC
+ *
+ *  ROUTINE NAME:
+ *
+ *  DESCRIPTION:
+ *
+ *  INPUT:
+ *
+ *  OUTPUT:
+ *
+ *******************************************************************/
+
+void os_sleep_init(void)
+{
+}
+
+/********************************************************************
+ *  DESC
+ *
+ *  ROUTINE NAME:
+ *
+ *  DESCRIPTION:
+ *
+ *  INPUT:
+ *
+ *  OUTPUT:
+ *
+ *******************************************************************/
+
+void os_sleep(void)
+{
+    os_tick_stop();
+    /*
+     * here we do whatever we need to sleep...
+     */
+    os_tick_start();
 }
 
 /********************************************************************
@@ -194,8 +284,7 @@ os_tick_init( void )
  *
  *******************************************************************/
 
-void
-os_delay_us( uint32_t MicroSecondCounter )
+void os_delay_us( uint32_t MicroSecondCounter )
 {
     uint32_t i;
     for (i = 0; i < MicroSecondCounter; i++)
@@ -217,8 +306,7 @@ os_delay_us( uint32_t MicroSecondCounter )
  *  OUTPUT:		none
  *
  *******************************************************************/
-void
-os_delay_ms( uint16_t ms )
+void os_delay_ms( uint16_t ms )
 {
     while (ms--)
     {
@@ -241,8 +329,7 @@ os_delay_ms( uint16_t ms )
  *
  *******************************************************************/
 
-void
-__attribute__((interrupt, no_auto_psv)) _T1Interrupt(void)
+void __attribute__((interrupt, no_auto_psv)) _T1Interrupt(void)
 {
     /*
      * clear the interrupt flag
@@ -270,8 +357,7 @@ __attribute__((interrupt, no_auto_psv)) _T1Interrupt(void)
  *
  *******************************************************************/
 
-void
-__attribute__((interrupt, no_auto_psv)) _OscillatorFail(void)
+void __attribute__((interrupt, no_auto_psv)) _OscillatorFail(void)
 {
     while (1);
 }
@@ -289,8 +375,7 @@ __attribute__((interrupt, no_auto_psv)) _OscillatorFail(void)
  *
  *******************************************************************/
 
-void
-__attribute__((interrupt, no_auto_psv)) _AddressError(void)
+void __attribute__((interrupt, no_auto_psv)) _AddressError(void)
 {
     while (1);
 }
@@ -308,8 +393,7 @@ __attribute__((interrupt, no_auto_psv)) _AddressError(void)
  *
  *******************************************************************/
 
-void
-__attribute__((interrupt, no_auto_psv)) _StackError(void)
+void __attribute__((interrupt, no_auto_psv)) _StackError(void)
 {
     while (1);
 }
@@ -327,8 +411,7 @@ __attribute__((interrupt, no_auto_psv)) _StackError(void)
  *
  *******************************************************************/
 
-void
-__attribute__((interrupt, no_auto_psv)) _MathError(void)
+void __attribute__((interrupt, no_auto_psv)) _MathError(void)
 {
     while (1);
 }

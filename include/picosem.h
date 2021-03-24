@@ -14,7 +14,7 @@
  *  ------  -------  ----   ----------------------
  *	09-27-2012		DS		modified to use protothreads
  *
- *  Copyright (c) 2009 - 2016 Dave Sandler
+ *  Copyright (c) 2009 - 2021 Dave Sandler
  *
  *  This file is part of pico.
  *
@@ -81,10 +81,10 @@
 	/*
 	 *********************************************************
 	 *
-	 * void OS_SemWait(pt,*sem,timeout)
+	 * void os_sem_wait(pt,*sem,timeout)
 	 *	wait on a semaphore
 	 */
-	#define OS_SemWait( pt, sem, timeout )				\
+	#define os_sem_wait(pt, sem, timeout)                    \
 	    do												\
 	    {												\
 	        os_delay(ME, timeout);						\
@@ -94,8 +94,7 @@
 	            os_suspend( (k_list_t *)&sem );			\
 	            return PT_WAITING;						\
 	        }											\
-	    }												\
-	    while(0);										\
+		} while (0);                                         \
 	    if (sem.sem_count)								\
 	    {												\
 	        sem.sem_count--;								\

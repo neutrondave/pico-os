@@ -19,7 +19,7 @@
  * 9-21-12			 DS	    unlink UIP from the PIC32 and TCP/IP. simple conditional
  *							build switch
  *
- *  Copyright (c) 2009 - 2016 Dave Sandler
+ *  Copyright (c) 2009 - 2021 Dave Sandler
  *
  *  This file is part of pico.
  *
@@ -209,6 +209,8 @@
 	_SCOPE_ void 		 os_kill_task( tcb_entry_t * );
 	_SCOPE_ tcb_entry_t *os_get_tcb( void );
 	_SCOPE_ void 	     os_release_tcb( tcb_entry_t * );
+	_SCOPE_ tcb_entry_t *os_get_task_handle(int (*)(tcb_pt_t *));
+
 	#define				 os_suspend( q )	os_suspend_task( q, (k_list_t *)ME )
 	_SCOPE_ void		 os_add_timerhook( t_hook_entry_t *, void ( *)(void));
 	_SCOPE_ void		 os_add_schedhook( t_hook_entry_t *, void ( *)(void));
@@ -223,7 +225,9 @@
 	_SCOPE_ void	os_delay( tcb_entry_t *, timer_t );
 	#define			get_task_timer( t )		t->timer
 	#define			set_task_timer( t, d )	t->timer = d
-	#define			start_task_timer( t )	t->flags |= TCB_TIMING; t->flags &= ~TCB_TIMEOUT
+	#define start_task_timer(t) \
+		t->flags |= TCB_TIMING; \
+		t->flags &= ~TCB_TIMEOUT
 	#define			get_timer_status( t )	(t->timer & TCB_TMRSTAT)
 	#define			get_os_ticks( )			current_tick
 	#define			task_timer_expired(t)	(0 != (t->flags & TCB_TIMEOUT))
@@ -240,12 +244,15 @@
 	_SCOPE_ void        os_delay_us( uint32_t );
 	_SCOPE_ void        os_tick_delay( uint16_t );
 	_SCOPE_ timer_t		os_get_elapsed_time( timer_t * );
+	_SCOPE_ void	os_update_timer(timer_t *, timer_t);
 	_SCOPE_ void 	    kq_qinsert( k_list_t *, k_list_t * );
 	_SCOPE_ k_list_t   *kq_qdelete( k_list_t * );
 	_SCOPE_ void        kq_ndelete( k_list_t * );
 	_SCOPE_ void 	    kq_slinsert( k_slist_t *, k_slist_t * );
 	_SCOPE_ k_slist_t  *kq_sldelete( k_slist_t * );
 	_SCOPE_ void        kq_slndelete( k_slist_t *, k_slist_t * );
+	_SCOPE_ uint16_t   calc_fletcher16(uint8_t const *buf, uint16_t len);
+
 	/*
 	 *	kernel data, ...
 	 */

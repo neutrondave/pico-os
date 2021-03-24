@@ -17,7 +17,7 @@
  *   09-24-12   DS  	clean up. was never used.
  *   05-21-13   DS  	greatly simplified...
  *
- *  Copyright (c) 2009 - 2016 Dave Sandler
+ *  Copyright (c) 2009 - 2021 Dave Sandler
  *
  *  This file is part of pico.
  *
@@ -133,8 +133,7 @@
  *!
  *! \return 	none.
  */
-void
-os_que_init(os_queue_t *q, q_size_t qsize, uint8_t *buffer)
+void os_que_init(os_queue_t *q, q_size_t qsize, uint8_t *buffer)
 {
     q->qsize        = qsize;
     q->inptr        = 0;
@@ -153,8 +152,7 @@ os_que_init(os_queue_t *q, q_size_t qsize, uint8_t *buffer)
  *!
  *! \return 	status.
  */
-uint8_t
-os_que_add(os_queue_t *q, q_type_t *item)
+uint8_t os_que_add(os_queue_t *q, q_type_t *item)
 {
     if(!os_que_full(q))
     {
@@ -182,8 +180,7 @@ os_que_add(os_queue_t *q, q_type_t *item)
  *!
  *! \return 	number of items inserted
  */
-q_size_t
-os_que_putarray(os_queue_t *q, q_type_t *item, q_size_t len)
+q_size_t os_que_putarray(os_queue_t *q, q_type_t *item, q_size_t len)
 {
     q_size_t putCount;
     
@@ -199,8 +196,7 @@ os_que_putarray(os_queue_t *q, q_type_t *item, q_size_t len)
         {
             break;
         }
-    }
-    while (--len);
+	} while (--len);
     return (putCount);
 }
 
@@ -215,8 +211,7 @@ os_que_putarray(os_queue_t *q, q_type_t *item, q_size_t len)
  *!
  *! \return 	number of items inserted
  */
-q_size_t
-os_que_putstring(os_queue_t *q, q_type_t *item)
+q_size_t os_que_putstring(os_queue_t *q, q_type_t *item)
 {
     q_size_t putCount;
     
@@ -246,8 +241,7 @@ os_que_putstring(os_queue_t *q, q_type_t *item)
  *!
  *! \return 	status.
  */
-uint8_t
-os_que_remove(os_queue_t *q, q_type_t *item)
+uint8_t os_que_remove(os_queue_t *q, q_type_t *item)
 {
     if(!os_que_empty(q))
     {
@@ -275,8 +269,7 @@ os_que_remove(os_queue_t *q, q_type_t *item)
  *!
  *! \return 	status.
  */
-uint8_t
-os_que_peek(os_queue_t *q, q_type_t *item)
+uint8_t os_que_peek(os_queue_t *q, q_type_t *item)
 {
     if(!os_que_empty(q))
     {
@@ -300,8 +293,7 @@ os_que_peek(os_queue_t *q, q_type_t *item)
  *!
  *! \return 	none.
  */
-void
-os_que_flush(os_queue_t *q)
+void os_que_flush(os_queue_t *q)
 {
     q->inptr  = 0;
     q->outptr = 0;
