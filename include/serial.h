@@ -14,7 +14,7 @@
  *  ------  -------  ----   ----------------------
  * 5-21-13			 DS	    Creation
  *
- *  Copyright (c) 2016 Dave Sandler
+ *  Copyright (c) 2021 Dave Sandler
  *
  *  This file is part of pico.
  *
@@ -68,7 +68,7 @@
 	 *  Include Section
 	 */
 	#include "pico.h"
-	#include "hardwareprofile.h"
+	#include "board.h"
 	/*
 	 **********************************************************************
 	 *  Defines Section
@@ -79,13 +79,13 @@
 		uint32_t     bitrate;
 		uint8_t      parity;
 		uint8_t      stop;
-		uint8_t      DataCtrl;
-		uint8_t      TxPrio;
-		uint8_t      RxPrio;
+		uint8_t      data_ctrl;
+		uint8_t      tx_prio;
+		uint8_t      rx_prio;
 		uint8_t      wake;
-		os_queue_t *serTxQ;
-		os_queue_t *serRxQ;
-	} Ser_portInfo;
+		os_queue_t  *ser_tx_q;
+		os_queue_t  *ser_rx_q;
+	} ser_port_info_t;
 
 	#define	SER_PORT1		0
 	#define	SER_PORT2		1
@@ -121,8 +121,8 @@
 		#define _SCOPE_ extern	/**/
 	#endif
 
-	_SCOPE_ uint8_t SerialInit(Ser_portInfo *portInfo);
-	_SCOPE_ void SerialTxStart(uint8_t port);
+	_SCOPE_ uint8_t serial_init(ser_port_info_t *portInfo);
+	_SCOPE_ void serial_tx_start(uint8_t port);
 
 	#ifdef ENABLE_UART1_DRIVER
 	    _SCOPE_  void   _U1RXInterrupt( void );

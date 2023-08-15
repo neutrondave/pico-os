@@ -20,7 +20,7 @@
  *   05-07-13   DS  	Add dsPIC, PIC24 support
  *   05-21-13   DS  	break out into platform specific directories
  *
- *  Copyright (c) 2009 - 2016 Dave Sandler
+ *  Copyright (c) 2009 - 2021 Dave Sandler
  *
  *  This file is part of pico.
  *

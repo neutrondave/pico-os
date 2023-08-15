@@ -890,7 +890,7 @@ void os_tick_delay(uint16_t delay)
     temp_tick += 1;
     do
     {
-		clr_wdt();
+		//clr_wdt();
 	} while (temp_tick != current_tick);
 }
 

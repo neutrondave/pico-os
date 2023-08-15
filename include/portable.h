@@ -77,6 +77,9 @@
 	#elif defined(PIC24E)
 		//#include 	<GenericTypeDefs.h>
 		//#include    "HardwareProfile.h"
+	#elif defined(PIC24F)
+		//#include 	<GenericTypeDefs.h>
+		//#include    "HardwareProfile.h"
 	#elif defined(DSPIC30)
 		//#include 	<GenericTypeDefs.h>
 		//#include    "HardwareProfile.h"

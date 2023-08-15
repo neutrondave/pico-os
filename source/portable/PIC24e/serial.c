@@ -15,7 +15,7 @@
  *  --------    ----    ----------------------
  *   05-21-13   DS  	Module creation.
  *
- *  Copyright (c) 2016 Dave Sandler
+ *  Copyright (c) 2021 Dave Sandler
  *
  *  This file is part of pico.
  *
@@ -68,7 +68,7 @@
  *   System Includes
  */
 #define   PICOSER_C
-#include "HardwareProfile.h"
+#include "board.h"
 #include "pico.h"
 #include "picoque.h"
 #include "portable.h"
@@ -124,8 +124,7 @@
  *
  *   Prototypes
  */
- uint8_t UARTInit(SerPortInfo *portInfo);
-
+ 
 #ifdef ENABLE_UART1_DRIVER
       void   _U1RXInterrupt( void );
       void   _U1TXInterrupt( void );
@@ -157,7 +156,7 @@
 /********************************************************************
  *  DESC
  *
- *  ROUTINE NAME:   SerialInit
+ *  ROUTINE NAME:   serial_init
  *
  *  DESCRIPTION:    initialize a UART
  *
@@ -167,48 +166,49 @@
  *
  *******************************************************************/
 uint8_t 
-SerialInit(SerPortInfo *portInfo)
+serial_init(ser_port_info_t *portInfo)
 {
     uint8_t retval;
-    uint16_t BaudDivide;
+    uint16_t baud_divide;
     
     retval = SER_SET_PASS;
     /*
      * calculate the baud rate divider
      *  for BRGH = 0
      */
-    BaudDivide = (CPU_CLOCK_HZ / (16 * portInfo->bitrate)) - 1;
+    baud_divide = (CPU_CLOCK_HZ / (16 * portInfo->bitrate)) - 1;
     
     switch (portInfo->port)
     {
         case SER_PORT1:
             #ifdef ENABLE_UART1_DRIVER
-                IPC2bits.U1RXIP    = portInfo->RxPrio;
-                IPC3bits.U1TXIP    = portInfo->TxPrio;
-                U1BRG              = BaudDivide;
+                IPC2bits.U1RXIP    = portInfo->rx_prio;
+                IPC3bits.U1TXIP    = portInfo->tx_prio;
+                U1BRG              = baud_divide;
                 U1MODE             = 0;
-                U1MODEbits.UEN     = (portInfo->DataCtrl & DC_MASK);
+                U1MODEHbits.FLO    = (portInfo->data_ctrl & DC_MASK);
                 U1MODEbits.PDSEL   = portInfo->parity;
-                U1MODEbits.STSEL   = portInfo->stop;
+                U1MODEHbits.STSEL  = portInfo->stop;
                 U1MODEbits.WAKE    = portInfo->wake;
                 U1MODEbits.UARTEN  = 1;
                 U1STA              = 0;
                 U1STAbits.UTXEN    = 1;
+                U1STAbits.URXEN    = 1;
 	            IEC0bits.U1RXIE    = 1;
 	            IEC0bits.U1TXIE    = 0;
-                Tx1Que             = portInfo->serTxQ; 
-                Rx1Que             = portInfo->serRxQ; 
+                Tx1Que             = portInfo->ser_tx_q; 
+                Rx1Que             = portInfo->ser_rx_q; 
             #else
                 retval = SER_BAD_PORT;
             #endif
             break;
         case SER_PORT2:
             #ifdef ENABLE_UART2_DRIVER
-                IPC7bits.U2RXIP    = portInfo->RxPrio;
-                IPC7bits.U2TXIP    = portInfo->TxPrio;
-                U2BRG              = BaudDivide;
+                IPC7bits.U2RXIP    = portInfo->rx_prio;
+                IPC7bits.U2TXIP    = portInfo->tx_prio;
+                U2BRG              = baud_divide;
                 U2MODE             = 0;
-                U2MODEbits.UEN     = (portInfo->DataCtrl & DC_MASK);
+                U2MODEbits.UEN     = (portInfo->data_ctrl & DC_MASK);
                 U2MODEbits.PDSEL   = portInfo->parity;
                 U2MODEbits.STSEL   = portInfo->stop;
                 U2MODEbits.WAKE    = portInfo->wake;
@@ -217,19 +217,19 @@ SerialInit(SerPortInfo *portInfo)
                 U2STAbits.UTXEN    = 1;
 	            IEC1bits.U2RXIE    = 1;
 	            IEC1bits.U2TXIE    = 0;
-                Tx2Que             = portInfo->serTxQ; 
-                Rx2Que             = portInfo->serRxQ; 
+                Tx2Que             = portInfo->ser_tx_q; 
+                Rx2Que             = portInfo->ser_rx_q; 
             #else
                 retval = SER_BAD_PORT;
             #endif
             break;
         case SER_PORT3:
             #ifdef ENABLE_UART3_DRIVER
-                IPC20bits.U3RXIP   = portInfo->RxPrio;
-                IPC20bits.U3TXIP   = portInfo->TxPrio;
-                U3BRG              = BaudDivide;
+                IPC20bits.U3RXIP   = portInfo->rx_prio;
+                IPC20bits.U3TXIP   = portInfo->tx_prio;
+                U3BRG              = baud_divide;
                 U3MODE             = 0;
-                U3MODEbits.UEN     = (portInfo->DataCtrl & DC_MASK);
+                U3MODEbits.UEN     = (portInfo->data_ctrl & DC_MASK);
                 U3MODEbits.PDSEL   = portInfo->parity;
                 U3MODEbits.STSEL   = portInfo->stop;
                 U3MODEbits.WAKE    = portInfo->wake;
@@ -238,19 +238,19 @@ SerialInit(SerPortInfo *portInfo)
                 U3STAbits.UTXEN    = 1;
 	            IEC5bits.U3RXIE    = 1;
 	            IEC5bits.U3TXIE    = 0;
-                Tx3Que             = portInfo->serTxQ; 
-                Rx3Que             = portInfo->serRxQ; 
+                Tx3Que             = portInfo->ser_tx_q; 
+                Rx3Que             = portInfo->ser_rx_q; 
             #else
                 retval = SER_BAD_PORT;
             #endif
             break;
         case SER_PORT4:
             #ifdef ENABLE_UART4_DRIVER
-                IPC22bits.U4RXIP   = portInfo->RxPrio;
-                IPC22bits.U4TXIP   = portInfo->TxPrio;
-                U4BRG              = BaudDivide;
+                IPC22bits.U4RXIP   = portInfo->rx_prio;
+                IPC22bits.U4TXIP   = portInfo->tx_prio;
+                U4BRG              = baud_divide;
                 U4MODE             = 0;
-                U4MODEbits.UEN     = (portInfo->DataCtrl & DC_MASK);
+                U4MODEbits.UEN     = (portInfo->data_ctrl & DC_MASK);
                 U4MODEbits.PDSEL   = portInfo->parity;
                 U4MODEbits.STSEL   = portInfo->stop;
                 U4MODEbits.WAKE    = portInfo->wake;
@@ -259,8 +259,8 @@ SerialInit(SerPortInfo *portInfo)
                 U4STAbits.UTXEN    = 1;
 	            IEC5bits.U4RXIE    = 1;
 	            IEC5bits.U4TXIE    = 0;
-                Tx4Que             = portInfo->serTxQ; 
-                Rx4Que             = portInfo->serRxQ; 
+                Tx4Que             = portInfo->ser_tx_q; 
+                Rx4Que             = portInfo->ser_rx_q; 
             #else
                 retval = SER_BAD_PORT;
             #endif
@@ -275,7 +275,7 @@ SerialInit(SerPortInfo *portInfo)
 /********************************************************************
  *  DESC
  *
- *  ROUTINE NAME:   SerialTxStart
+ *  ROUTINE NAME:   serial_tx_start
  *
  *  DESCRIPTION:    start transmitting
  *
@@ -285,7 +285,7 @@ SerialInit(SerPortInfo *portInfo)
  *
  *******************************************************************/
 void 
-SerialTxStart(uint8_t port)
+serial_tx_start(uint8_t port)
 {
     switch (port)
     {
@@ -351,9 +351,9 @@ __attribute__((interrupt, no_auto_psv)) _U1RXInterrupt(void)
      */
     IFS0bits.U1RXIF = 0;
     #ifdef ENABLE_UART1_DRIVER
-	    while (U1STAbits.URXDA)
+	    while (U1STAHbits.URXBF)
 	    {
-		    temp = U1RXREG;
+		    temp = (q_type_t)U1RXREG;
 		    if((U1STA & 0x0E) == 0)
 	        {						
 	            /*
@@ -399,21 +399,22 @@ __attribute__((interrupt, no_auto_psv)) _U1RXInterrupt(void)
 void 
 __attribute__((interrupt, no_auto_psv)) _U1TXInterrupt(void)
 {
-    q_type_t temp;
-
-    IFS0bits.U1TXIF = 0;
     #ifdef ENABLE_UART1_DRIVER
+        q_type_t temp;
+
+        /*
+         * clear interrupt flag
+         */
+        IFS0bits.U1TXIF = 0;
         if (!os_que_empty(Tx1Que))
         {
             os_que_get(Tx1Que, temp);        
-            U1TXREG = temp;
+            U1TXREG = (uint16_t)temp;
         }
         else
         {
 		    IEC0bits.U1TXIE = 0;
 	    }
-    #else
-	    IEC0bits.U1TXIE = 0;
     #endif    
 }
 
@@ -432,15 +433,16 @@ __attribute__((interrupt, no_auto_psv)) _U1TXInterrupt(void)
 void
 __attribute__((interrupt, no_auto_psv)) _U2RXInterrupt(void)
 {
-    uint16_t temp;
-    /*
-     * clear interrupt flag
-     */
-    IFS1bits.U2RXIF = 0;
     #ifdef ENABLE_UART2_DRIVER
-	    while (U2STAbits.URXDA)
+        q_type_t temp;
+
+        /*
+         * clear interrupt flag
+         */
+        IFS1bits.U2RXIF = 0;
+	    while (U2STAHbits.URXBF)
 	    {
-		    temp = U2RXREG;
+		    temp = (q_type_t)U2RXREG;
 		    if((U2STA & 0x0E) == 0)
 	        {						
 	            /*
@@ -466,8 +468,6 @@ __attribute__((interrupt, no_auto_psv)) _U2RXInterrupt(void)
 			    }
 		    }
 	    }
-    #else
-        IEC1bits.U2RXIE = 0;
     #endif    
 }
 
@@ -486,21 +486,22 @@ __attribute__((interrupt, no_auto_psv)) _U2RXInterrupt(void)
 void 
 __attribute__((interrupt, no_auto_psv)) _U2TXInterrupt(void)
 {
-    q_type_t temp;
-
-    IFS1bits.U2TXIF = 0;
     #ifdef ENABLE_UART2_DRIVER
+        q_type_t temp;
+
+        /*
+         * clear interrupt flag
+         */
+        IFS1bits.U2TXIF = 0;
         if (!os_que_empty(Tx2Que))
         {
             os_que_get(Tx2Que, temp);        
-            U2TXREG = temp;
+            U2TXREG = (uint16_t)temp;
         }
         else
         {
 		    IEC1bits.U2TXIE = 0;
 	    }
-    #else
-	    IEC1bits.U2TXIE = 0;
     #endif    
 }
 
@@ -519,15 +520,16 @@ __attribute__((interrupt, no_auto_psv)) _U2TXInterrupt(void)
 void
 __attribute__((interrupt, no_auto_psv)) _U3RXInterrupt(void)
 {
-    uint16_t temp;
-    /*
-     * clear interrupt flag
-     */
-    IFS5bits.U3RXIF = 0;
     #ifdef ENABLE_UART3_DRIVER
-	    while (U3STAbits.URXDA)
+        q_type_t temp;
+
+        /*
+         * clear interrupt flag
+         */
+        IFS3bits.U3RXIF = 0;
+	    while (U3STAHbits.URXBF)
 	    {
-		    temp = U3RXREG;
+		    temp = (q_type_t)U3RXREG;
 		    if((U3STA & 0x0E) == 0)
 	        {						
 	            /*
@@ -553,8 +555,6 @@ __attribute__((interrupt, no_auto_psv)) _U3RXInterrupt(void)
 			    }
 		    }
 	    }
-    #else
-        IEC5bits.U3RXIE = 0;
     #endif    
 }
 
@@ -573,21 +573,22 @@ __attribute__((interrupt, no_auto_psv)) _U3RXInterrupt(void)
 void 
 __attribute__((interrupt, no_auto_psv)) _U3TXInterrupt(void)
 {
-    q_type_t temp;
-
-    IFS5bits.U3TXIF = 0;
     #ifdef ENABLE_UART3_DRIVER
+        q_type_t temp;
+
+        /*
+         * clear interrupt flag
+         */
+        IFS3bits.U3TXIF = 0;
         if (!os_que_empty(Tx3Que))
         {
             os_que_get(Tx3Que, temp);        
-            U3TXREG = temp;
+            U3TXREG = (uint16_t)temp;
         }
         else
         {
 		    IEC5bits.U3TXIE = 0;
 	    }
-    #else
-	    IEC5bits.U3TXIE = 0;
     #endif    
 }
 
@@ -606,15 +607,16 @@ __attribute__((interrupt, no_auto_psv)) _U3TXInterrupt(void)
 void
 __attribute__((interrupt, no_auto_psv)) _U4RXInterrupt(void)
 {
-    uint16_t temp;
-    /*
-     * clear interrupt flag
-     */
-    IFS5bits.U4RXIF = 0;
     #ifdef ENABLE_UART4_DRIVER
-	    while (U4STAbits.URXDA)
+        q_type_t temp;
+
+        /*
+         * clear interrupt flag
+         */
+        IFS5bits.U4RXIF = 0;
+	    while (U4STAHbits.URXBF)
 	    {
-		    temp = U4RXREG;
+		    temp = (q_type_t)U4RXREG;
 		    if((U4STA & 0x0E) == 0)
 	        {						
 	            /*
@@ -640,8 +642,6 @@ __attribute__((interrupt, no_auto_psv)) _U4RXInterrupt(void)
 			    }
 		    }
 	    }
-    #else
-        IEC5bits.U4RXIE = 0;
     #endif    
 }
 
@@ -660,21 +660,22 @@ __attribute__((interrupt, no_auto_psv)) _U4RXInterrupt(void)
 void 
 __attribute__((interrupt, no_auto_psv)) _U4TXInterrupt(void)
 {
-    q_type_t temp;
-
-    IFS5bits.U4TXIF = 0;
     #ifdef ENABLE_UART4_DRIVER
+        q_type_t temp;
+
+        /*
+         * clear interrupt flag
+         */
+        IFS5bits.U4TXIF = 0;
         if (!os_que_empty(Tx4Que))
         {
             os_que_get(Tx4Que, temp);        
-            U4TXREG = temp;
+            U4TXREG = (uint16_t)temp;
         }
         else
         {
 		    IEC5bits.U4TXIE = 0;
 	    }
-    #else
-	    IEC5bits.U4TXIE = 0;
     #endif    
 }
 /*
