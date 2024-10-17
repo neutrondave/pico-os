@@ -74,19 +74,22 @@
 	#if defined(PIC32MX)
 		#include 	<GenericTypeDefs.h>
 		#include    "HardwareProfile.h"
+	#elif defined(PIC32MZ)
+		#include 	<xc.h>
 	#elif defined(PIC24E)
-		//#include 	<GenericTypeDefs.h>
-		//#include    "HardwareProfile.h"
+		#include 	<GenericTypeDefs.h>
+		#include    "HardwareProfile.h"
 	#elif defined(PIC24F)
-		//#include 	<GenericTypeDefs.h>
+		#include 	<xc.h>
 		//#include    "HardwareProfile.h"
 	#elif defined(DSPIC30)
-		//#include 	<GenericTypeDefs.h>
-		//#include    "HardwareProfile.h"
+		#include 	<GenericTypeDefs.h>
+	#elif defined(DSPIC33)
+		#include 	<xc.h>
 	#elif defined(CORTEXM3)
-		//#include	"hw_types.h"
-		//#include	"cortex_m3.h"
-		//#include	"interrupt.h"
+		#include	"hw_types.h"
+		#include	"cortex_m3.h"
+		#include	"interrupt.h"
 	#elif defined(CORTEXM0)
 		#include <asf.h>
 	#else
@@ -116,6 +119,37 @@
 	#ifdef	PIC32MX
 		#define DI()	INTDisableInterrupts()
 		#define EI()	INTEnableInterrupts()
+	#endif
+
+	#ifdef	PIC32MZ
+		#define DI()	__builtin_disable_interrupts()
+		#define EI()	__builtin_enable_interrupts()
+	#endif
+
+#if (defined(PIC24E) || defined (PIC24F))
+		#define DI()	
+		#define EI()	
+		#define clr_wdt() os_wdt_reset()
+    #elif (defined(DSPIC33C))
+		#define DI()                INTCON2bits.GIE = 0
+		#define EI()                INTCON2bits.GIE = 1
+		#define clr_wdt()           os_wdt_reset()
+	#endif
+	#define ENTER_CRITICAL()		DI()
+	#define EXIT_CRITICAL()			EI()
+	#define portNOP()
+	#ifdef PORTABLE_C
+		void os_tick_init(void);
+		void os_wdt_init(void);
+		void os_wdt_reset(void);
+		void os_sleep_init(void);
+		void os_sleep(void);
+	#else
+		extern void os_tick_init(void);
+		extern void os_wdt_init(void);
+		extern void os_wdt_reset(void);
+		extern void os_sleep_init(void);
+		extern void os_sleep(void);
 	#endif
 
 	#ifdef	CORTEXM0
@@ -152,11 +186,13 @@
 	#ifdef PORTABLE_C
 		void os_tick_init(void);
 		void os_wdt_init(void);
+		void os_wdt_reset(void);
 		void os_sleep_init(void);
 		void os_sleep(void);
 	#else
 		extern void os_tick_init(void);
 		extern void os_wdt_init(void);
+		extern void os_wdt_reset(void);
 		extern void os_sleep_init(void);
 		extern void os_sleep(void);
 	#endif

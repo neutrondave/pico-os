@@ -157,14 +157,14 @@ struct pt
  *
  * \hideinitializer
  */
-#define PT_WAIT_UNTIL(pt, condition) \
-		do                               \
-		{                                \
-            LC_SET((pt)->lc);				 \
-			if (!(condition))            \
-			{                            \
-                    return PT_WAITING;			 \
-                }								 \
+#define PT_WAIT_UNTIL(pt, condition)    \
+		do                              \
+		{                               \
+            LC_SET((pt)->lc);			\
+			if (!(condition))           \
+			{                           \
+                    return PT_WAITING;	\
+                }						\
         } while(0)
 
 /**

@@ -74,10 +74,8 @@
  */
 
 #define 	 PORTABLE_C
-#include	"pico.h"
-#include	"portable.h"
-#include 	<plib.h>
-#include    "HardwareProfile.h"
+#include    <xc.h>
+#include    <sys/attribs.h>
 
 /*
  ********************************************************************
@@ -119,7 +117,6 @@ void 	os_tick_interrupt( void );
 void 	os_delay_us( uint32_t );
 void 	os_delay_ms( uint16_t );
 void 	os_tick_interrupt( void );
-void   _general_exception_handler(unsigned int, unsigned int);
 void 	os_tick_init( void );
 
 /*
@@ -138,19 +135,18 @@ static uint16_t		one_sec_prescale;
 extern tcb_entry_t  *current_task;
 extern k_list_t     k_ready_list, k_wait_list;
 extern tcb_entry_t  tcb[N_TASKS];
-extern timer_t		current_tick;
 extern timer_t		last_tick;
 
 /*
  * Let compile time pre-processor calculate the timer 1 tick period
  *
  */
-#define SYS_FREQ 				CPU_CLOCK_HZ
-#define T2_PRESCALE				       64
-#define PB_DIV					        1
-#define T2_PRIO				            4
-#define T2_CONFIG				(T2_ON | T2_IDLE_CON | T2_GATE_OFF | T2_PS_1_64 | T2_32BIT_MODE_OFF | T2_SOURCE_INT)
-#define T2_RELOAD				(SYS_FREQ/(PB_DIV*T2_PRESCALE*TICK_RATE_HZ) - 1)
+#define SYS_FREQ 	CPU_CLOCK_HZ
+#define T2_PRESCALE	64
+#define PB_DIV		1
+#define T2_PRIO		4
+#define T2_CONFIG	(T2_ON | T2_IDLE_CON | T2_GATE_OFF | T2_PS_1_64 | T2_32BIT_MODE_OFF | T2_SOURCE_INT)
+#define T2_RELOAD	(SYS_FREQ/(PB_DIV*T2_PRESCALE*TICK_RATE_HZ) - 1)
 
 /********************************************************************
  *  DESC
@@ -165,26 +161,136 @@ extern timer_t		last_tick;
  *
  *******************************************************************/
 
-void
-os_tick_init( void )
+static void os_tick_start(void)
+{
+    T2CONbits.ON = 1;			/* start the timer		*/
+}
+
+/********************************************************************
+ *  DESC
+ *
+ *  ROUTINE NAME:
+ *
+ *  DESCRIPTION:
+ *
+ *  INPUT:
+ *
+ *  OUTPUT:
+ *
+ *******************************************************************/
+
+static void os_tick_stop(void)
+{
+    T2CONbits.ON = 0;			/* stop the timer		*/
+}
+
+/********************************************************************
+ *  DESC
+ *
+ *  ROUTINE NAME:
+ *
+ *  DESCRIPTION:
+ *
+ *  INPUT:
+ *
+ *  OUTPUT:
+ *
+ *******************************************************************/
+
+void os_tick_init( void )
 {
     /*
      * Configure SysTick to
      *	interrupt at the requested rate.
      *			and start it.
      */
-    /*
-     * Turn ON the system clock
-     *
-     */
-    Opentimer2(T2_CONFIG, T2_RELOAD);
-    ConfigInttimer2(T2_INT_ON | T2_INT_PRIOR_4);
-    /*
-     * Turn on the interrupts
-     *
-     */
-    INTEnableSystemMultiVectoredInt();
+    T2CONbits.ON = 0;       // timer2 is disabled       
     one_sec_prescale = SYSTICKHZ;
+    
+    T2CONbits.TCS = 1;      // external clock source
+    T2CONbits.TCKPS = 0;    // 1:1 prescaler  
+    
+    T2CKR = 0b1101;         //external clock pin PA14
+    TMR2  = 0;              //clear timer2    
+    PR2   = T2_RELOAD;      //PR2 = 999, 1Hz Timer     
+    IPC2bits.T2IP = 1;      //priority 1
+    IPC2bits.T2IS = 0;      //sub-priority 0
+    IFS0bits.T2IF = 0;      //clear flag
+    IEC0bits.T2IE = 1;      //enable interrupt    
+    T2CONbits.ON  = 1;      //timer is enabled
+}
+
+/********************************************************************
+ *  DESC
+ *
+ *  ROUTINE NAME:
+ *
+ *  DESCRIPTION:
+ *
+ *  INPUT:
+ *
+ *  OUTPUT:
+ *
+ *******************************************************************/
+
+void os_wdt_init(void)
+{
+}
+
+/********************************************************************
+ *  DESC
+ *
+ *  ROUTINE NAME:
+ *
+ *  DESCRIPTION:
+ *
+ *  INPUT:
+ *
+ *  OUTPUT:
+ *
+ *******************************************************************/
+
+void os_wdt_reset(void)
+{
+}
+
+/********************************************************************
+ *  DESC
+ *
+ *  ROUTINE NAME:
+ *
+ *  DESCRIPTION:
+ *
+ *  INPUT:
+ *
+ *  OUTPUT:
+ *
+ *******************************************************************/
+
+void os_sleep_init(void)
+{
+}
+
+/********************************************************************
+ *  DESC
+ *
+ *  ROUTINE NAME:
+ *
+ *  DESCRIPTION:
+ *
+ *  INPUT:
+ *
+ *  OUTPUT:
+ *
+ *******************************************************************/
+
+void os_sleep(void)
+{
+    os_tick_stop();
+    /*
+     * here we do whatever we need to sleep...
+     */
+    os_tick_start();
 }
 
 /********************************************************************
@@ -200,38 +306,15 @@ os_tick_init( void )
  *
  *******************************************************************/
 
-void
-os_delay_us( uint32_t MicroSecondCounter )
+void os_delay_us( uint32_t us )
 {
-    volatile uint32_t cyclesRequiredForEntireDelay;
-    if(GetInstructionClock() <= 500000)				 //for all FCY speeds under 500KHz (FOSC <= 1MHz)
+    uint32_t i;
+	os_wdt_reset();
+    DI();
+    for (i = 0; i < us; i++)
     {
-        //10 cycles burned through this path (includes return to caller).
-        //For FOSC == 1MHZ, it takes 5us.
-        //For FOSC == 4MHZ, it takes 0.5us
-        //For FOSC == 8MHZ, it takes 0.25us.
-        //For FOSC == 10MHZ, it takes 0.2us.
     }
-    else
-    {
-        //7 cycles burned to this point.
-        //We want to pre-calculate number of cycles required to delay 10us * tenMicroSecondCounter using a 1 cycle granule.
-        cyclesRequiredForEntireDelay = (INT32)(GetInstructionClock()/1000000)*MicroSecondCounter;
-        //We subtract all the cycles used up until we reach the while loop below, where each loop cycle count is subtracted.
-        //Also we subtract the 5 cycle function return.
-        cyclesRequiredForEntireDelay -= 24; 		//(19 + 5)
-        if(cyclesRequiredForEntireDelay <= 0)
-        {
-            // If we have exceeded the cycle count already, bail!
-        }
-        else
-        {
-            while(cyclesRequiredForEntireDelay>0) 	//19 cycles used to this point.
-            {
-                cyclesRequiredForEntireDelay -= 8; 	//Subtract cycles burned while doing each delay stage, 8 in this case.
-            }
-        }
-    }
+    EI();
 }
 
 /********************************************************************
@@ -271,43 +354,15 @@ os_delay_ms( uint16_t ms )
  *
  *******************************************************************/
 
-void
-__ISR(_TIMER_2_VECTOR, IPL(TICK_IPL)) os_tick_interrupt( void )
+void __ISR_AT_VECTOR(_TIMER_2_VECTOR, IPL1AUTO) os_tick_interrupt(void)
 {
-    mT2ClearIntFlag();
+    IFS0bits.T2IF = 0; //clear flag
     os_timerHook();
     if (0 == --one_sec_prescale)
     {
         one_sec_prescale = SYSTICKHZ;
         os_seconds++;
     }
-}
-
-/********************************************************************
- *  DESC
- *
- *  ROUTINE NAME:	_general_exception_handler
- *
- *  DESCRIPTION:	MIPS general exception interrupt handler
- *
- *  INPUT:			cause, status
- *
- *  OUTPUT:			does not return
- *
- *******************************************************************/
-
-void
-_general_exception_handler( unsigned int cause, unsigned int status )
-{
-    uint32_t excep_code;
-    uint32_t excep_addr;
-    excep_code = (cause & 0x0000007C) >> 2;
-    excep_addr = __builtin_mfc0(_CP0_EPC, _CP0_EPC_SELECT);
-    if ((cause & 0x80000000) != 0)
-    {
-        excep_addr += 4;
-    }
-    while (1);
 }
 /*
  *  END OF portable.c

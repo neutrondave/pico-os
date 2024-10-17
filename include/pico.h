@@ -244,7 +244,7 @@
 	_SCOPE_ void        os_delay_us( uint32_t );
 	_SCOPE_ void        os_tick_delay( uint16_t );
 	_SCOPE_ timer_t		os_get_elapsed_time( timer_t * );
-	_SCOPE_ void	os_update_timer(timer_t *, timer_t);
+	_SCOPE_ void        os_update_timer(timer_t *, timer_t);
 	_SCOPE_ void 	    kq_qinsert( k_list_t *, k_list_t * );
 	_SCOPE_ k_list_t   *kq_qdelete( k_list_t * );
 	_SCOPE_ void        kq_ndelete( k_list_t * );

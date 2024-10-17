@@ -74,252 +74,29 @@
  *   System Includes
  */
 #define 	 PORTABLE_C
-#include	<asf.h>
 #include	"pico.h"
 #include	"portable.h"
-/*
- ********************************************************************
- *
- *   Common Includes
- */
-/*
- ********************************************************************
- *
- *   Board Specific Includes
- */
-/*
- ********************************************************************
- *
- *   Constants
- */
-/*
- ********************************************************************
- *
- *   Program Globals
- */
-/*
- ********************************************************************
- *
- *   Module Globals
- */
-/*
- ********************************************************************
- *
- *   Prototypes
- */
-void SysTick_Handler(void);
-/*
- ********************************************************************
- *
- *   External Procedures
- */
-/*
- ********************************************************************
- *
- *   Module Data
- */
-static uint16_t		one_sec_prescale;
 
-#define SYSTICK_RELOAD		(CPU_CLOCK_HZ/SYSTICKHZ)
-#define NVIC_SYSTICK_CTRL   ((volatile unsigned long *) 0xe000e010)
-#define NVIC_SYSTICK_LOAD   ((volatile unsigned long *) 0xe000e014)
-#define NVIC_SYSTICK_VAL	((volatile unsigned long *) 0xe000e018)
-#define NVIC_SYSTICK_CLK    0x00000004
-#define NVIC_SYSTICK_INT    0x00000002
-#define NVIC_SYSTICK_ENABLE 0x00000001
+#if defined(PIC32MX)
+	#include    "PIC32MX/portable.c"
+#elif defined(PIC32MZ)
+	#include    "PIC32MX/portable.c"
+#elif defined(PIC24E)
+	#include    "PIC24e/portable.c"
+#elif defined(PIC24F)
+	#include    "PIC24f/portable.c"
+#elif defined(DSPIC30)
+	#include    "dsPIC/portable.c"
+#elif defined(DSPIC33)
+	#include    "dsPIC33/portable.c"
+#elif defined(CORTEXM3)
+	#include    "CortexM3/portable.c"
+#elif defined(CORTEXM0)
+	#include    "CortexM0/portable.c"
+#else
+	#error Unknown processor or compiler.
+#endif
 
-/********************************************************************
- *  DESC
- *
- *  ROUTINE NAME:
- *
- *  DESCRIPTION:
- *
- *  INPUT:
- *
- *  OUTPUT:
- *
- *******************************************************************/
-
-void os_tick_init(void)
-{
-	/*
-     * Configure SysTick to
-     *	interrupt at the requested rate.
-     *			and start it.
-     */
-	*(NVIC_SYSTICK_LOAD) = (system_cpu_clock_get_hz() / SYSTICKHZ) - 1UL;
-	*(NVIC_SYSTICK_CTRL) = NVIC_SYSTICK_CLK | NVIC_SYSTICK_INT | NVIC_SYSTICK_ENABLE;
-}
-
-/********************************************************************
- *  DESC
- *
- *  ROUTINE NAME:
- *
- *  DESCRIPTION:
- *
- *  INPUT:
- *
- *  OUTPUT:
- *
- *******************************************************************/
-
-void os_wdt_init(void)
-{
-	struct wdt_conf config;
-	wdt_get_config_defaults(&config);
-	wdt_set_config(&config);
-}
-
-/********************************************************************
- *  DESC
- *
- *  ROUTINE NAME:
- *
- *  DESCRIPTION:
- *
- *  INPUT:
- *
- *  OUTPUT:
- *
- *******************************************************************/
-
-void os_sleep_init(void)
-{
-	system_set_sleepmode(SYSTEM_SLEEPMODE_STANDBY);
-}
-
-/********************************************************************
- *  DESC
- *
- *  ROUTINE NAME:
- *
- *  DESCRIPTION:
- *
- *  INPUT:
- *
- *  OUTPUT:
- *
- *******************************************************************/
-
-static void os_tick_start(void)
-{
-	*(NVIC_SYSTICK_CTRL) = NVIC_SYSTICK_CLK | NVIC_SYSTICK_INT | NVIC_SYSTICK_ENABLE;
-}
-
-/********************************************************************
- *  DESC
- *
- *  ROUTINE NAME:
- *
- *  DESCRIPTION:
- *
- *  INPUT:
- *
- *  OUTPUT:
- *
- *******************************************************************/
-
-static void os_tick_stop(void)
-{
-	*(NVIC_SYSTICK_CTRL) = 0;
-}
-
-/********************************************************************
- *  DESC
- *
- *  ROUTINE NAME:
- *
- *  DESCRIPTION:
- *
- *  INPUT:
- *
- *  OUTPUT:
- *
- *******************************************************************/
-
-void os_sleep(void)
-{
-	struct wdt_conf config;
-	bool			wd_enable;
-
-	os_tick_stop();
-	wdt_get_config_defaults(&config);
-	wd_enable	  = config.enable;
-	config.enable = false;
-	wdt_set_config(&config);
-
-	system_sleep();
-	wdt_get_config_defaults(&config);
-	config.enable = wd_enable;
-	os_tick_start();
-}
-
-/********************************************************************
- *  DESC
- *
- *  ROUTINE NAME:	os_delay_us
- *
- *  DESCRIPTION:	os_delay in units of 1uS
- *
- *  INPUT:			Delay interval
- *
- *  OUTPUT:			none
- *
- *******************************************************************/
-
-void os_delay_us(uint32_t us)
-{
-	cpu_delay_us(us);
-}
-
-/********************************************************************
- *  DESC
- *
- *  ROUTINE NAME:	os_delay_ms
- *
- *  DESCRIPTION:	os_delay in units of 1mS
- *
- *  INPUT:			Delay interval
- *
- *  OUTPUT:			none
- *
- *******************************************************************/
-void os_delay_ms(uint16_t ms)
-{
-	os_tick_delay(ms);
-}
-
-/********************************************************************
- *  DESC
- *
- *  ROUTINE NAME:   SysTickHandler
- *
- *  DESCRIPTION:    OS timer interrupt. For the Arm Cortex M we chose 
- *					to use the system tick interrupt.
- *
- *  INPUT:			none
- *
- *  OUTPUT:			none
- *
- *******************************************************************/
-
-void SysTick_Handler(void)
-{
-    system_interrupt_enter_critical_section();
-	/*
-     * clear the interrupt flag
-     *	and handle the event
-     */
-    os_timerHook();
-    if (0 == --one_sec_prescale)
-    {
-        one_sec_prescale = SYSTICKHZ;
-        os_seconds++;
-    }
-	system_interrupt_leave_critical_section();
-}
 /*
  *  END OF portable.c
  *

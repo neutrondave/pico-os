@@ -999,7 +999,7 @@ void service_os_timers(void)
 
     if (0 != elapsed_time)
     {
-		clr_wdt();
+		os_wdt_reset();
         #ifdef USES_UIP
            if ( uip_timer > elapsed_time )
            {

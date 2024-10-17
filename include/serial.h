@@ -87,29 +87,30 @@
 		os_queue_t  *ser_rx_q;
 	} ser_port_info_t;
 
-	#define	SER_PORT1		0
-	#define	SER_PORT2		1
-	#define	SER_PORT3		2
-	#define	SER_PORT4		3
+	#define	SER_PORT1		0u
+	#define	SER_PORT2		1u
+	#define	SER_PORT3		2u
+	#define	SER_PORT4		3u
 
-	#define	DC_TXRX_ONLY	0
-	#define	DC_TXRX_RTS		1
-	#define	DC_TXRX_RTSCTS	2
-	#define	DC_MASK		    3
+	#define	DC_TXRX_ONLY	0u
+	#define	DC_TXRX_RTS		1u
+	#define	DC_TXRX_RTSCTS	2u
+	#define	DC_MASK		    0x0F
 	#define	DC_RS485		4
 
-	#define	DATA8_NP		0
-	#define	DATA8_EP		1
-	#define	DATA8_OP		2
-	#define	DATA9_NP		3
+	#define	DATA8_NP		0u
+	#define	DATA7_NP		1u
+	#define	DATA8_OP		2u
+	#define	DATA8_EP		3u
+	#define	DATA9_NP		4u
 
-	#define ONE_STOP		0
-	#define TWO_STOP		1
+	#define ONE_STOP		0u
+	#define TWO_STOP		1u
 
-	#define SERPORT_WAKE	1
+	#define SERPORT_WAKE	1u
 
-	#define	SER_SET_PASS	0
-	#define	SER_BAD_PORT	1
+	#define	SER_SET_PASS	0u
+	#define	SER_BAD_PORT	1u
 
 	/*
 	 **********************************************************************
@@ -121,8 +122,8 @@
 		#define _SCOPE_ extern	/**/
 	#endif
 
-	_SCOPE_ uint8_t serial_init(ser_port_info_t *portInfo);
-	_SCOPE_ void serial_tx_start(uint8_t port);
+	_SCOPE_ uint8_t serial_init(ser_port_info_t *port);
+	_SCOPE_ void    serial_tx_start(uint8_t port);
 
 	#ifdef ENABLE_UART1_DRIVER
 	    _SCOPE_  void   _U1RXInterrupt( void );

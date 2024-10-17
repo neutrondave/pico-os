@@ -133,7 +133,7 @@
  *!
  *! \return 	none.
  */
-void os_que_init(os_queue_t *q, q_size_t qsize, uint8_t *buffer)
+void os_que_init(os_queue_t *q, q_size_t qsize, q_type_t *buffer)
 {
     q->qsize        = qsize;
     q->inptr        = 0;

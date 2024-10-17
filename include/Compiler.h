@@ -58,19 +58,22 @@
 #endif
 #elif defined(__PIC24E__)	// Microchip C30 compiler
 // PIC24F processor
-#include <p24Exxxx.h>
+#include <xc.h>
 #elif defined(__PIC24F__)	// Microchip C30 compiler
 // PIC24F processor
-#include <p24Fxxxx.h>
+#include <xc.h>
 #elif defined(__PIC24H__)	// Microchip C30 compiler
 // PIC24H processor
-#include <p24Hxxxx.h>
+#include <xc.h>
+#elif defined(__dsPIC33C__)	// Microchip C30 compiler
+// dsPIC33F processor
+#include <xc.h>
 #elif defined(__dsPIC33F__)	// Microchip C30 compiler
 // dsPIC33F processor
-#include <p33Fxxxx.h>
+#include <xc.h>
 #elif defined(__dsPIC30F__)	// Microchip C30 compiler
 // dsPIC30F processor
-#include <p30fxxxx.h>
+#include <xc.h>
 #elif defined(__PIC32MX__)	// Microchip C32 compiler
 #if !defined(__C32__)
 #define __C32__
